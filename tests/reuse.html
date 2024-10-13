@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Test Reuse audio</title>
+        <template id="template-audio">
+        </template>
+    </head>
+    <body>
+        <h1>Test reuse audio</h1>
+        <input id="files" type="file" accept="audio/*">
+        <section id="container" class="audio">
+            <h3 name="title"></h3>
+            <audio id="audio" name="audio" src="" controls></audio>
+        </section>
+        <script>
+        /** @type{HTMLElement}*/
+        const HTMLFiles = document.getElementById("files");
+
+        /** @type{HTMLElement}*/
+        const HTMLContainer = document.getElementById("container");
+
+        /** @type{HTMLAudioElement}*/
+        const HTMLAudio = document.getElementById("audio");
+
+        /** @type{(file: File) => undefined}*/
+        function createAudioComponent(file) {
+            const HTMLTitle = HTMLContainer.firstElementChild;
+            HTMLTitle.textContent = file.name;
+
+            if (HTMLAudio.src) {
+                URL.revokeObjectURL(HTMLAudio.src);
+            }
+            HTMLAudio.src = URL.createObjectURL(file);
+            HTMLAudio.type = file.type;
+            HTMLAudio.canPlayType(file.type);
+        }
+
+        HTMLFiles.addEventListener("click", function () {
+            HTMLFiles.value = "";
+        }, false);
+
+        HTMLFiles.addEventListener("input", function (e) {
+            const files = this.files;
+            if (files !== null) {
+                for (let file of files) {
+                    if (!file.type.startsWith("audio/")) {
+                        continue;
+                    }
+                    createAudioComponent(file);
+                }
+            }
+        }, false);
+        </script>
+    </body>
+</html>

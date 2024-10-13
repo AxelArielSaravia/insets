@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Test Delay</title>
+        <template id="template-audio">
+            <section class="audio">
+                <h3 name="title"></h3>
+                <audio name="audio" src="" controls></audio>
+            </section>
+        </template>
+    </head>
+    <body>
+        <h1>Test Delay</h1>
+        <input id="files" type="file" accept="audio/*" multiple>
+        <div id="container">
+        </div>
+<script>
+    const EVENT_ONCE = {once: true};
+
+    const Audios = [];
+
+    /** @type{DocumentFragment}*/
+    const Fragment = document.createDocumentFragment();
+
+    /** @type{HTMLElement}*/
+    const HTMLFiles = document.getElementById("files");
+
+    /** @type{HTMLElement}*/
+    const HTMLContainer = document.getElementById("container");
+
+    /** @type{HTMLCollection}*/
+    const HTMLChildren = HTMLContainer.children;
+
+    /** @type{DocumentFragment}*/
+    const HTMLTemplateAudio = (
+        document
+        .getElementById("template-audio")
+        .content
+    );
+    /**@type{AudioContext}*/
+    const audioctx = new AudioContext();
+
+    /** @type{(file: File) => HTMLElement}*/
+    function createAudioComponent(file) {
+        const HTMLAudioComponent = HTMLTemplateAudio.cloneNode(true).firstElementChild;
+        const HTMLTitle = HTMLAudioComponent.children["title"];
+        const HTMLAudio = HTMLAudioComponent.children["audio"];
+
+        HTMLTitle.textContent = file.name;
+        HTMLAudio.src = URL.createObjectURL(file);
+        HTMLAudio.type = file.type;
+
+        HTMLAudio.canPlayType(file.type);
+
+        return HTMLAudioComponent;
+    }
+
+    function AudioOnError() {
+        let i = Array.prototype.indexOf.call(HTMLChildren, this)
+        if (i === -1) {
+            return;
+        }
+        HTMLContainer.children[i].remove();
+    }
+
+    function AudioOncanplaythrogh() {
+        const HTMLAudio = this;
+        const source = audioctx.createMediaElementSource(HTMLAudio);
+
+        HTMLAudio.source = source;
+        HTMLAudio.output = audioctx.createGain();
+        HTMLAudio.input = audioctx.createGain();
+        HTMLAudio.delay = audioctx.createDelay(5);
+        HTMLAudio.feedback = audioctx.createGain();
+
+        HTMLAudio.delay.channelCountMode = "max";
+        HTMLAudio.delay.delayTime.value = 1;
+        HTMLAudio.feedback.gain.value = 0.5;
+
+        source.connect(HTMLAudio.input);
+        HTMLAudio.input.connect(HTMLAudio.delay);
+        HTMLAudio.input.connect(HTMLAudio.output);
+        HTMLAudio.delay.connect(HTMLAudio.feedback);
+        HTMLAudio.feedback.connect(HTMLAudio.delay);
+        HTMLAudio.feedback.connect(HTMLAudio.output);
+
+        HTMLAudio.output.connect(audioctx.destination);
+    }
+
+    HTMLFiles.addEventListener("click", function () {
+        HTMLFiles.value = "";
+    }, false);
+
+    HTMLFiles.addEventListener("input", function (e) {
+        audioctx.resume();
+        const files = this.files;
+        if (files !== null) {
+            for (let file of files) {
+                if (!file.type.startsWith("audio/")) {
+                    continue;
+                }
+                const HTMLAudioComponent = createAudioComponent(file);
+                const HTMLAudio = HTMLAudioComponent.children["audio"];
+                Fragment.append(HTMLAudioComponent);
+                HTMLAudio.addEventListener("error", AudioOnError, EVENT_ONCE);
+                HTMLAudio.addEventListener("canplaythrough", AudioOncanplaythrogh, EVENT_ONCE);
+            }
+        }
+        HTMLContainer.append(Fragment);
+    }, false);
+</script>
+</body>
+</html>
