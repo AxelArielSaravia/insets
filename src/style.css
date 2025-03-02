@@ -303,10 +303,6 @@ div.app .configuration menu {
     padding: 10px 0;
 }
 
-div.app details {
-    padding: 10px 0;
-}
-
 div.app summary {
     display:flex;
     align-items: center;
@@ -318,10 +314,12 @@ div.app summary {
     list-style: none;
 
     border-radius: var(--visual-radius);
+
+    padding: 1ch 0;
 }
 
-
 div.app details[open] {
+    padding-bottom: 1ch;
     border-bottom: 1px solid;
     border-color: var(--color-select);
 }

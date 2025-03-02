@@ -18,7 +18,7 @@ func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func main() {
     mux := http.NewServeMux();
 
-    fileServer := http.FileServer(http.Dir("./src"))
+    fileServer := http.FileServer(http.Dir("./"))
     mux.Handle("/", fileServer)
 
     fmt.Printf("Starting server on http://127.0.0.1%s\n", PORT)

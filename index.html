@@ -328,10 +328,6 @@ div.app .configuration menu {
     padding: 10px 0;
 }
 
-div.app details {
-    padding: 10px 0;
-}
-
 div.app summary {
     display:flex;
     align-items: center;
@@ -343,10 +339,12 @@ div.app summary {
     list-style: none;
 
     border-radius: var(--visual-radius);
+
+    padding: 1ch 0;
 }
 
-
 div.app details[open] {
+    padding-bottom: 1ch;
     border-bottom: 1px solid;
     border-color: var(--color-select);
 }
@@ -883,6 +881,7 @@ const SelectedAudios = {
 let AudioEventsSum = 0;
 const AudioList = {
     len: 0,
+    zombies: 0,
      
     buf: [],
      
@@ -2822,6 +2821,37 @@ const HtmlAppContainerOninput = function (e) {
     }
 };
 
+const BodyOnkeyup = function (e) {
+    const target = e.target;
+    if (e.key === "s") {
+        HtmlAppMenu
+            .firstElementChild
+            .firstElementChild
+            .click();
+    } else if (e.key === "a") {
+        HtmlAppMenu
+            .children[1]
+            .firstElementChild
+            .firstElementChild
+            .click();
+    } else if (e.key === "d") {
+        HtmlAppMenu
+            .children[2]
+            .firstElementChild
+            .click();
+    }
+};
+
+const initBodyOnkeydown = function (e) {
+    const target = e.target;
+    if ("button" !== target.localName
+        && "a" !== target.localName
+        && "Enter" === e.key
+    ) {
+        const HtmlPresOpen = document.getElementById("presentation-open");
+        HtmlPresOpen.click();
+    }
+};
 
 
 
@@ -2837,7 +2867,8 @@ const checkAppVersion = function (v) {
 };
 
 const HtmlPresOpenOnclick = function () {
-    document.body.removeEventListener("keydown", BodyOnkeydown);
+    document.body.removeEventListener("keydown", initBodyOnkeydown);
+
     const HtmlMain = document.getElementById("main");
     assert(HtmlMain !== null, "#main is not found");
     HtmlMain.setAttribute("data-app", "1");
@@ -2857,52 +2888,12 @@ const HtmlPresOpenOnclick = function () {
         context.listener.setPosition(0, 0, 1);
         context.listener.setOrientation(0, 0, -5, 0 ,1, 0);
     }
+
+    return openApp();
 };
 
-
-
-const checkAudioContext = function () {
-    let res = true;
-    const HtmlPresLoading = document.getElementById("presentation-loading");
-    assert(HtmlPresLoading !== null, "#presentation-loading is not found");
-
-    const HtmlPresError = document.getElementById("presentation-error");
-    assert(HtmlPresError !== null, "#presentation-error is not found");
-
-    const HtmlPresOpen = document.getElementById("presentation-open");
-    assert(HtmlPresOpen !== null, "#presentation-open is not found");
-
-
-    if (undefined === AudioContext) {
-        res = false;
-        HtmlPresLoading.setAttribute("data-css-hidden", "");
-        HtmlPresError.removeAttribute("data-css-hidden");
-    } else {
-        
-        HtmlPresLoading.setAttribute("data-css-hidden", "");
-        HtmlPresOpen.removeAttribute("data-css-hidden");
-
-        HtmlPresOpen.addEventListener("click", HtmlPresOpenOnclick, EVENT_CO);
-    }
-    return res;
-};
-
-const BodyOnkeydown = function (e) {
-    const target = e.target;
-    if ("button" !== target.localName
-        && "a" !== target.localName
-        && "Enter" === e.key
-    ) {
-        const HtmlPresOpen = document.getElementById("presentation-open");
-        HtmlPresOpen.click();
-    }
-};
-
-const main = function () {
-    if (!checkAudioContext()) {
-        return;
-    }
-    document.body.addEventListener("keydown", BodyOnkeydown, false);
+const openApp = function () {
+    document.body.addEventListener("keyup", BodyOnkeyup, true);
 
     
     HtmlApp.addEventListener("dragenter", function () {
@@ -2932,6 +2923,32 @@ const main = function () {
 
     HtmlAppContainer.addEventListener("click", HtmlAppContainerOnclick, false);
     HtmlAppContainer.addEventListener("input", HtmlAppContainerOninput, false);
+};
+
+const main = function () {
+    
+    const HtmlPresLoading = document.getElementById("presentation-loading");
+    assert(HtmlPresLoading !== null, "#presentation-loading is not found");
+
+    const HtmlPresError = document.getElementById("presentation-error");
+    assert(HtmlPresError !== null, "#presentation-error is not found");
+
+    const HtmlPresOpen = document.getElementById("presentation-open");
+    assert(HtmlPresOpen !== null, "#presentation-open is not found");
+
+
+    if (undefined === AudioContext) {
+        HtmlPresLoading.setAttribute("data-css-hidden", "");
+        HtmlPresError.removeAttribute("data-css-hidden");
+    } else {
+        
+        HtmlPresLoading.setAttribute("data-css-hidden", "");
+        HtmlPresOpen.removeAttribute("data-css-hidden");
+
+        HtmlPresOpen.addEventListener("click", HtmlPresOpenOnclick, EVENT_CO);
+        document.body.addEventListener("keydown", initBodyOnkeydown, true);
+    }
+
 };
 main();
 </script>
@@ -3036,7 +3053,7 @@ main();
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>delay</span>
+                                <span>Delay</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -3058,7 +3075,7 @@ main();
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>filter</span>
+                                <span>Filter</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -3080,7 +3097,7 @@ main();
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>panner</span>
+                                <span>Panner</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -3102,7 +3119,7 @@ main();
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>pb rate</span>
+                                <span>Pb Rate</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -3252,7 +3269,7 @@ main();
                     </li>
                 </ul>
             </nav>
-            <script>(function() {
+            <script defer>(function() {
     "use strict"
     const T_DARK = "dark";
     const T_LIGHT = "light";
@@ -3429,7 +3446,7 @@ main();
                     class="configuration"
                     data-show="0"
                 >
-                    <h2>Configuration</h2>
+                    <h2>Music Configuration</h2>
                     <menu>
                         <li>
                             <button name="import">
@@ -3446,7 +3463,7 @@ main();
                         title="Here are the probability values of audios sets sizes for the executions. The maximum size of a set that can be executed is 15"
                     >
                         <summary>
-                            <span>sets</span>
+                            <span>Sets</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4107,7 +4124,7 @@ main();
                         title="This is an interval that represents the time to wait between executions of audios set"
                     >
                         <summary>
-                            <span>time</span>
+                            <span>Time</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4368,7 +4385,7 @@ main();
                         title="Change the fadeIn and fadeOut values for all audios"
                     >
                         <summary>
-                            <span>fades</span>
+                            <span>Fades</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4422,7 +4439,7 @@ main();
                         title="Change the delay configurations"
                     >
                         <summary>
-                            <span>delay</span>
+                            <span>Delay</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4532,7 +4549,7 @@ main();
                         title="Change the general parameters of different filters"
                     >
                         <summary>
-                            <span>filter</span>
+                            <span>Filter</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4733,7 +4750,7 @@ main();
                         title="Change the intervals that represents a position of the audio in a right-hand Cartesian coordinate system"
                     >
                         <summary>
-                            <span>panner</span>
+                            <span>Panner</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4876,7 +4893,7 @@ main();
                         title="The normal playback rate is multiplied by a random value inside the interval to obtain the current playback rate"
                     >
                         <summary>
-                            <span>pb rate</span>
+                            <span>Pb Rate</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -4951,7 +4968,7 @@ main();
                         title="Enable and disable the random cut effect for the start point and the end point"
                     >
                         <summary>
-                            <span>cuts</span>
+                            <span>Cuts</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"

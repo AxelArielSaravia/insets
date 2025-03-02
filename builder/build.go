@@ -7,7 +7,16 @@ import (
     "os"
 )
 
-type Data struct{
+const PROD_HREF = "./";
+
+var builders = []Builder{
+    {path: "./src/index.html", template: "index", ext: "html"},
+    {path: "./src/style.css", template: "style", ext: "css"},
+    {path: "./src/script.js", template: "script", ext: "js"},
+    {path: "./src/scriptTheme.js", template: "scriptTheme", ext: "js"},
+}
+
+type HTMLData struct{
     Href string
     Production bool
 }
@@ -18,6 +27,7 @@ const (
     ARG_MINI
     ARG_LEN
 )
+
 
 var argName = [ARG_LEN]string{
     ARG_HELP: "help",
@@ -37,16 +47,10 @@ type Builder struct{
     ext string
 }
 
-var builders = []Builder{
-    {path: "./src/index.html", template: "index", ext: "html"},
-    {path: "./src/style.css", template: "style", ext: "css"},
-    {path: "./src/script.js", template: "script", ext: "js"},
-    {path: "./src/scriptTheme.js", template: "scriptTheme", ext: "js"},
-}
-
 func main() {
     var args []string = os.Args[1:]
-    if slices.Contains(args, argName[ARG_HELP]) {
+
+    if len(args) < 1 || slices.Contains(args, argName[ARG_HELP]) {
         fmt.Print(
             "Usage: "+os.Args[0]+" [OPTIONS]\n",
             "\n",
@@ -58,22 +62,29 @@ func main() {
         return
     }
 
-    data := Data{
+    var production = false
+    var htmldata = HTMLData{
+        Production: production,
         Href: "./",
-        Production: false,
     }
-    if slices.Contains(args, argName[ARG_PROD]) {
-        data.Production = true
-        data.Href = "./"
+
+    if production = slices.Contains(args, argName[ARG_PROD]); production {
+        htmldata = HTMLData{
+            Production: production,
+            Href: PROD_HREF,
+        }
     }
 
     var fd *os.File
     var err error
-    if (data.Production) {
-        fd, err = os.OpenFile("./index.html", os.O_CREATE|os.O_WRONLY, 0o644)
+
+
+    if (production) {
+        fd, err = os.OpenFile("index.html", os.O_CREATE|os.O_WRONLY, 0o644)
     } else {
-        fd, err = os.OpenFile("./dev.html", os.O_CREATE|os.O_WRONLY, 0o644)
+        fd, err = os.OpenFile("dev.html", os.O_CREATE|os.O_WRONLY, 0o644)
     }
+
     if err != nil {
         fmt.Fprint(os.Stderr, "os.OpenFile", err)
         os.Exit(1)
@@ -102,7 +113,7 @@ func main() {
         }
     }
 
-    err = tmpl.Execute(fd, data)
+    err = tmpl.Execute(fd, htmldata)
     if err != nil {
         fmt.Fprintln(os.Stderr, "template Execute", err)
         os.Exit(1)

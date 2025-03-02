@@ -26,8 +26,8 @@
             <style>{{template "style" .}}</style>
             <script type="module">{{template "script" .}}</script>
         {{else}}
-            <link href="./src/style.css" rel="stylesheet">
-            <script src="./src/script.js" defer></script>
+            <link rel="stylesheet" href="src/style.css">
+            <script src="src/script.js" defer></script>
         {{end}}
 
         <template id="t-audio-element">
@@ -129,7 +129,7 @@
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>delay</span>
+                                <span>Delay</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -151,7 +151,7 @@
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>filter</span>
+                                <span>Filter</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -173,7 +173,7 @@
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>panner</span>
+                                <span>Panner</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -195,7 +195,7 @@
                                 >
                                     <rect width="18" height="18" x="3" y="3" rx="2"/>
                                 </svg>
-                                <span>pb rate</span>
+                                <span>Pb Rate</span>
                             </span>
                         </label>
                         <label class="checkbox">
@@ -345,7 +345,7 @@
                     </li>
                 </ul>
             </nav>
-            <script>{{template "scriptTheme" .}}</script>
+            <script defer>{{template "scriptTheme" .}}</script>
         </header>
         <main id="main" data-app="0">
             <section class="presentation">
@@ -493,7 +493,7 @@
                     class="configuration"
                     data-show="0"
                 >
-                    <h2>Configuration</h2>
+                    <h2>Music Configuration</h2>
                     <menu>
                         <li>
                             <button name="import">
@@ -510,7 +510,7 @@
                         title="Here are the probability values of audios sets sizes for the executions. The maximum size of a set that can be executed is 15"
                     >
                         <summary>
-                            <span>sets</span>
+                            <span>Sets</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -1171,7 +1171,7 @@
                         title="This is an interval that represents the time to wait between executions of audios set"
                     >
                         <summary>
-                            <span>time</span>
+                            <span>Time</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -1432,7 +1432,7 @@
                         title="Change the fadeIn and fadeOut values for all audios"
                     >
                         <summary>
-                            <span>fades</span>
+                            <span>Fades</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -1486,7 +1486,7 @@
                         title="Change the delay configurations"
                     >
                         <summary>
-                            <span>delay</span>
+                            <span>Delay</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -1596,7 +1596,7 @@
                         title="Change the general parameters of different filters"
                     >
                         <summary>
-                            <span>filter</span>
+                            <span>Filter</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -1797,7 +1797,7 @@
                         title="Change the intervals that represents a position of the audio in a right-hand Cartesian coordinate system"
                     >
                         <summary>
-                            <span>panner</span>
+                            <span>Panner</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -1940,7 +1940,7 @@
                         title="The normal playback rate is multiplied by a random value inside the interval to obtain the current playback rate"
                     >
                         <summary>
-                            <span>pb rate</span>
+                            <span>Pb Rate</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
@@ -2015,7 +2015,7 @@
                         title="Enable and disable the random cut effect for the start point and the end point"
                     >
                         <summary>
-                            <span>cuts</span>
+                            <span>Cuts</span>
                             <svg xmlns="http://www.w3.org/2000/svg"
                                 width="24" height="24"
                                 viewBox="0 0 24 24"
