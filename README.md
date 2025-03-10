@@ -9,9 +9,14 @@ and open it on any browser. That's all, Yey!!
 
 ## To Do:
 
-* [ ] Implement the FadeIn and Fadeout on the Play and Pause actions
+* [ ] Light Theme palette
 
-* [ ] Change the fix set of effect in each AudioComponent for a dynamic one
-* [ ] Adds the change AudioEvent
+* [x] Adds the change AudioEvent
 * [ ] Adds the audio visualization
+
+* [ ] Implement the FadeIn and Fadeout on the Play and Pause actions
+* [ ] Use the localstorage to save the configuration
+* [ ] Implement "import"/"export" functionalities
+
+
 * [ ] Implement a notification sistem

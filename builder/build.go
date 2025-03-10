@@ -13,7 +13,6 @@ var builders = []Builder{
     {path: "./src/index.html", template: "index", ext: "html"},
     {path: "./src/style.css", template: "style", ext: "css"},
     {path: "./src/script.js", template: "script", ext: "js"},
-    {path: "./src/scriptTheme.js", template: "scriptTheme", ext: "js"},
 }
 
 type HTMLData struct{
