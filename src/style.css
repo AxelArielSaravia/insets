@@ -208,6 +208,7 @@ body {
 
     -webkit-tap-highlight-color: var(--color-highlight);
     user-select: none;
+    touch-action: none;
 }
 
 body>main {
@@ -531,6 +532,10 @@ div.app .configuration .time .eg {
     padding: 10px 0 0;
 }
 
+div.app .configuration .time [data-changed="0"] menu {
+    display: none;
+}
+
 .time-input {
     display: flex;
     align-items: center;
@@ -541,9 +546,6 @@ div.app .configuration .time .eg {
     font-size: var(--font-size);
 }
 
-.time [data-changed="0"] menu {
-    display: none;
-}
 
 div.app .configuration article .range{
     display: flex;
@@ -628,87 +630,93 @@ div.app .panel [name=probability] {
 }
 
 div.app .panel [name=playback] {
-    padding: 1ch;
+    position: relative;
+    padding: 1ch 2ch;
+}
+div.app .panel [name=playback] input:focus-visible {
+    outline-offset: .7ch;
 }
 
 div.app .panel [name=playback] .time-input {
-    --thumb-size: 14px;
-
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    --thumb-size: 1.5ch;
     appearance: none;
     position: relative;
     z-index: 1;
     width: calc(100% + var(--thumb-size));
     height: 0;
-
-    translate: -14px -14px;
     margin: 0;
+    background: var(--color-bg);
+}
+
+div.app .panel [name=playback] .start-time-input {
+    transform: translate(calc(-1 * var(--thumb-size)), -2px);
+}
+div.app .panel [name=playback] .end-time-input {
+    transform: translate(0, 2px);
 }
 div.app .panel [name=playback] .time-input::-webkit-slider-runnable-track {
     height: 0;
 }
 div.app .panel [name=playback] .time-input::-webkit-slider-thumb {
-
-}
-div.app .panel [name=playback] .end-time-input {
-    direction: rtl;
-    translate: 0;
-}
-
-div.app .panel [name=playback] .time {
-    position:relative;
-    display: flex;
-    align-items: center;
-    gap: var(--gap);
-}
-
-
-div.app .panel [name=playback] progress {
-    -webkit-appearance: none;
-    -moz-appearance: none;
     appearance: none;
+    background: var(--color-text);
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    border-radius: 50%;
+    transform: translateY(-.8ch);
+}
+
+div.app .panel [name=playback] .progress {
+    position:relative;
     width: 100%;
-    border: none;
     height: 1ch;
+    overflow: hidden;
+    background: var(--color-btn);
     border-radius: 1ch;
 }
 
-div.app .panel [name=playback] .current-bar {
-    background: var(--color-btn);
-    color: var(--color-select);
-}
 
-div.app .panel [name=playback] .rand-point {
-    color: var(--color-hover);
+div.app .panel [name=playback] .progress div {
+    height: inherit;
+    width: 100%;
 }
-
-div.app .panel [name=playback] .select-time {
-    color: var(--color-text);
-}
-
-div.app .panel [name=playback] :where(.rand-point,.select-time) {
+div.app .panel [name=playback] .progress :where(
+    .start-point,
+    .end-point,
+    .start-time,
+    .end-time
+) {
     position: absolute;
-    background: transparent;
+    inset: 0;
+}
+div.app .panel [name=playback] .progress .current {
+    --translate: 0%;
+    background: var(--color-select);
+    transform: translateX(calc(-100% + var(--translate)));
+}
+div.app .panel [name=playback] .progress .start-point {
+    --translate: 0%;
+    background: var(--color-hover);
+    transform: translateX(calc(-100% + var(--translate)));
+}
+div.app .panel [name=playback] .progress .end-point {
+    --translate: 100%;
+    background: var(--color-hover);
+    transform: translateX(var(--translate));
+}
+div.app .panel [name=playback] .progress :where(.start-time, .end-time) {
+    background: var(--color-text);
+    opacity: 70%;
+}
+div.app .panel [name=playback] .progress .start-time {
+    --translate: 0%;
+    transform: translateX(calc(-100% + var(--translate)));
+}
+div.app .panel [name=playback] .progress .end-time {
+    --translate: 100%;
+    transform: translateX(var(--translate));
 }
 
-div.app .panel [name=playback] progress::-webkit-progress-inner-element {
-    border-radius: inherit;
-    contain: content;
-}
-div.app .panel [name=playback] progress::-webkit-progress-bar {
-    background: inherit;
-}
-div.app .panel [name=playback] progress::-moz-progress-bar {
-    background: currentColor;
-}
-div.app .panel [name=playback] progress::-webkit-progress-value {
-    background: currentColor;
-}
-
-div.app .panel [name=playback] .rotate {
-    transform: rotate(180deg);
-}
 
 div.app .panel fieldset {
     --font-size: var(--font-size-config-menu);

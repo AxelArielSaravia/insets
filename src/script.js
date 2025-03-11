@@ -758,7 +758,7 @@ const audioAction = function (i, action) {
             if (state.duration >= 1) {
                 updateHtmlPanelRP(
                     state.startPoint * 100 / state.duration,
-                    100 - (state.endPoint * 100 / state.duration)
+                    state.endPoint * 100 / state.duration
                 );
             }
             updateHtmlPanelCurrentTime(
@@ -771,7 +771,7 @@ const audioAction = function (i, action) {
         audioPause(state);
         if (i === AudioSelectedIdx) {
             if (state.duration >= 1) {
-                updateHtmlPanelRP(0, 0);
+                updateHtmlPanelRP(0, 100);
             }
             updateHtmlPanelCurrentTime(0, 0);
         }
@@ -862,16 +862,31 @@ function durationToShortTime(val) {
 
 /**@type{(startval: number, endval: number) => undefined}*/
 const updateHtmlPanelRP = function (startval, endval) {
-    const HtmlTime = HtmlAppPanel.children["playback"].children["time"];
-    HtmlTime.children["start-point"].value = startval;
-    HtmlTime.children["end-point"].value = endval;
+    const HtmlProgress = HtmlAppPanel.children["playback"].children["progress"];
+
+    HtmlProgress.children["start-point"].setAttribute(
+        "style",
+        `--translate: ${startval}%`
+    );
+    HtmlProgress.children["end-point"].setAttribute(
+        "style",
+        `--translate: ${endval}%`
+    );
+    //HtmlTime.children["start-point"].value = startval;
+    //HtmlTime.children["end-point"].value = endval;
 };
 
 /**@type{(pval: number, tval: number) => undefined}*/
 const updateHtmlPanelCurrentTime = function (pval, tval) {
-    const HtmlTime = HtmlAppPanel.children["playback"].children["time"]
+    const HtmlProgress = HtmlAppPanel.children["playback"].children["progress"];
+    HtmlProgress.children["current"].setAttribute(
+        "style",
+        `--translate: ${pval}%`
+    );
+
+    //const HtmlTime = HtmlAppPanel.children["playback"].children["time"]
     //HtmlTime.children["current-text"].textContent = durationToTime(tval);
-    HtmlTime.children["current-bar"].value = pval;
+    //HtmlTime.children["current-bar"].value = pval;
 };
 
 const verifyHtmlCSets = function () {
@@ -1376,12 +1391,12 @@ const changeHtmlAppPanel = function (title, audioState) {
         );
         updateHtmlPanelRP(
             audioState.startPoint * 100 / audioState.duration,
-            100 - (audioState.endPoint * 100 / audioState.duration)
+            audioState.endPoint * 100 / audioState.duration
         );
     } else {
         HtmlAppPanel.setAttribute("data-playing", "0");
         updateHtmlPanelCurrentTime(0, 0);
-        updateHtmlPanelRP(0, 0);
+        updateHtmlPanelRP(0, 100);
     }
 };
 
@@ -2437,8 +2452,9 @@ const HtmlAppPanelOninput = function (e) {
             return;
         }
 
-        target.parentElement.children["time"].children["start-time"].value = (
-            target.valueAsNumber
+        target.parentElement.children["progress"].children["start-time"].setAttribute(
+            "style",
+            "--translate:" + target.value + "%"
         );
         state.startTime = startTime;
 
@@ -2447,7 +2463,7 @@ const HtmlAppPanelOninput = function (e) {
         assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
 
         const endTime = (
-            (state.duration * (100 - target.valueAsNumber)) / 100
+            (state.duration * target.valueAsNumber) / 100
         );
 
         if (state.startTime >= endTime - 0.5) {
@@ -2455,8 +2471,9 @@ const HtmlAppPanelOninput = function (e) {
             return;
         }
 
-        target.parentElement.children["time"].children["end-time"].value = (
-            target.valueAsNumber
+        target.parentElement.children["progress"].children["end-time"].setAttribute(
+            "style",
+            "--translate:" + target.value + "%"
         );
         state.endTime = endTime;
     }

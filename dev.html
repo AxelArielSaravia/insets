@@ -66,7 +66,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24"
                         viewBox="0 0 24 24"
-                        fill="none"
+                        fill="currentColor"
                         stroke="currentColor"
                         stroke-width="3"
                         stroke-linecap="round"
@@ -379,7 +379,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg"
                             width="24" height="24"
                             viewBox="0 0 24 24"
-                            fill="none"
+                            fill="currentColor"
                             stroke="currentColor"
                             stroke-width="3"
                             stroke-linecap="round"
@@ -474,49 +474,19 @@
                             value="0"
                             step="0.1"
                         >
-                        <div name="time" class="time">
-                            <progress name="current-bar"
-                                role="presentation"
-                                class="current-bar"
-                                max="100"
-                                min="0"
-                                value="0"
-                            ></progress>
-                            <progress name="start-point"
-                                role="presentation"
-                                class="rand-point start-point"
-                                max="100"
-                                min="0"
-                                value="0"
-                            ></progress>
-                            <progress name="end-point"
-                                role="presentation"
-                                class="rand-point rotate end-point"
-                                max="100"
-                                min="0"
-                                value="0"
-                            ></progress>
-                            <progress name="start-time"
-                                role="presentation"
-                                class="select-time start-time"
-                                max="100"
-                                min="0"
-                                value="0"
-                            ></progress>
-                            <progress name="end-time"
-                                role="presentation"
-                                class="select-time rotate end-time"
-                                max="100"
-                                min="0"
-                                value="0"
-                            ></progress>
+                        <div name="progress" class="progress">
+                            <div name="current" class="current"></div>
+                            <div name="start-point" class="start-point"></div>
+                            <div name="end-point" class="end-point"></div>
+                            <div name="start-time" class="start-time"></div>
+                            <div name="end-time" class="end-time"></div>
                         </div>
                         <input type="range"
                             name="end-time-input"
                             class="time-input end-time-input"
                             min="0"
                             max="100"
-                            value="0"
+                            value="100"
                             step="0.1"
                         >
                     </div>
