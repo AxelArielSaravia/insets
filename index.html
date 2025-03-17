@@ -655,43 +655,63 @@ div.app .panel [name=probability] {
 }
 
 div.app .panel [name=playback] {
-    position: relative;
     padding: 1ch 2ch;
 }
-div.app .panel [name=playback] input:focus-visible {
+div.app .panel .time-text {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--gap);
+}
+div.app .panel .range {
+    position: relative;
+}
+div.app .panel .ranges input:focus-visible {
     outline-offset: .7ch;
 }
 
-div.app .panel [name=playback] .time-input {
+div.app .panel .ranges .time-input {
     --thumb-size: 1.5ch;
     appearance: none;
     position: relative;
     z-index: 1;
     width: calc(100% + var(--thumb-size));
-    height: 0;
     margin: 0;
-    background: var(--color-bg);
+    background: transparent;
 }
 
-div.app .panel [name=playback] .start-time-input {
+div.app .panel .ranges .start-time-input {
     transform: translate(calc(-1 * var(--thumb-size)), -2px);
 }
-div.app .panel [name=playback] .end-time-input {
+div.app .panel .ranges .end-time-input {
     transform: translate(0, 2px);
 }
-div.app .panel [name=playback] .time-input::-webkit-slider-runnable-track {
-    height: 0;
+div.app .panel .ranges .time-input::-webkit-slider-runnable-track {
+    height: 4px;
 }
-div.app .panel [name=playback] .time-input::-webkit-slider-thumb {
+
+div.app .panel .ranges .time-input::-webkit-slider-thumb {
     appearance: none;
     background: var(--color-text);
     width: var(--thumb-size);
     height: var(--thumb-size);
     border-radius: 50%;
-    transform: translateY(-.8ch);
+    transform: translateY(-.4ch);
 }
 
-div.app .panel [name=playback] .progress {
+div.app .panel .ranges .time-input::-moz-range-thumb {
+    appearance: none;
+    background: var(--color-text);
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    border-radius: 50%;
+    transform: translateY(-.2ch);
+}
+div.app .panel .ranges .end-time-input::-moz-range-thumb {
+    transform: translateY(.2ch);
+}
+
+div.app .panel .ranges .progress {
     position:relative;
     width: 100%;
     height: 1ch;
@@ -701,11 +721,11 @@ div.app .panel [name=playback] .progress {
 }
 
 
-div.app .panel [name=playback] .progress div {
+div.app .panel .ranges .progress div {
     height: inherit;
     width: 100%;
 }
-div.app .panel [name=playback] .progress :where(
+div.app .panel .ranges .progress :where(
     .start-point,
     .end-point,
     .start-time,
@@ -714,34 +734,48 @@ div.app .panel [name=playback] .progress :where(
     position: absolute;
     inset: 0;
 }
-div.app .panel [name=playback] .progress .current {
+div.app .panel .ranges .progress .current {
     --translate: 0%;
     background: var(--color-select);
     transform: translateX(calc(-100% + var(--translate)));
 }
-div.app .panel [name=playback] .progress .start-point {
+div.app .panel .ranges .progress .start-point {
     --translate: 0%;
     background: var(--color-hover);
     transform: translateX(calc(-100% + var(--translate)));
 }
-div.app .panel [name=playback] .progress .end-point {
+div.app .panel .ranges .progress .end-point {
     --translate: 100%;
     background: var(--color-hover);
     transform: translateX(var(--translate));
 }
-div.app .panel [name=playback] .progress :where(.start-time, .end-time) {
+div.app .panel .ranges .progress :where(.start-time, .end-time) {
     background: var(--color-text);
     opacity: 70%;
 }
-div.app .panel [name=playback] .progress .start-time {
+div.app .panel .ranges .progress .start-time {
     --translate: 0%;
     transform: translateX(calc(-100% + var(--translate)));
 }
-div.app .panel [name=playback] .progress .end-time {
+div.app .panel .ranges .progress .end-time {
     --translate: 100%;
     transform: translateX(var(--translate));
 }
 
+div.app .panel [name=playback]:has( .start-time-input:active) .time-text [name=start-time],
+div.app .panel [name=playback]:has( .end-time-input:active) .time-text [name=end-time] {
+    color: var(--color-select);
+}
+div.app .panel .ranges:has( .start-time-input:active) .start-time,
+div.app .panel .ranges:has( .end-time-input:active) .end-time {
+    background: var(--color-select)!important;
+}
+div.app .panel .ranges .time-input:active::-webkit-slider-thumb {
+    background: var(--color-select)!important;
+}
+div.app .panel .ranges .time-input:active::-moz-range-thumb {
+    background: var(--color-select)!important;
+}
 
 div.app .panel fieldset {
     --font-size: var(--font-size-config-menu);
@@ -843,6 +877,17 @@ div.app .audio-container:empty::before {
 
     div.app .configuration details[open] {
         background: var(--color-btn);
+    }
+
+    div.app .panel .ranges:has( .start-time-input:hover) .start-time,
+    div.app .panel .ranges:has( .end-time-input:hover) .end-time {
+        background: var(--color-text-hover)
+    }
+    div.app .panel .ranges .time-input:hover::-webkit-slider-thumb {
+        background: var(--color-text-hover);
+    }
+    div.app .panel .ranges .time-input:hover::-moz-range-thumb {
+        background: var(--color-text-hover);
     }
 
     .audio {
@@ -1901,7 +1946,12 @@ function durationToShortTime(val) {
 
  
 const updateHtmlPanelRP = function (startval, endval) {
-    const HtmlProgress = HtmlAppPanel.children["playback"].children["progress"];
+    const HtmlProgress = (
+        HtmlAppPanel
+        .children["playback"]
+        .children[1]
+        .children["progress"]
+    );
 
     HtmlProgress.children["start-point"].setAttribute(
         "style",
@@ -1911,13 +1961,16 @@ const updateHtmlPanelRP = function (startval, endval) {
         "style",
         `--translate: ${endval}%`
     );
-    
-    
 };
 
  
 const updateHtmlPanelCurrentTime = function (pval, tval) {
-    const HtmlProgress = HtmlAppPanel.children["playback"].children["progress"];
+    const HtmlProgress = (
+        HtmlAppPanel
+        .children["playback"]
+        .children[1]
+        .children["progress"]
+    );
     HtmlProgress.children["current"].setAttribute(
         "style",
         `--translate: ${pval}%`
@@ -2413,6 +2466,29 @@ const changeHtmlAppPanel = function (title, audioState) {
 
     
 
+    const HtmlTimeText = HtmlAppPanel.children["playback"].children["time-text"];
+    HtmlTimeText.children["start-time"].textContent = (
+        durationToTime(audioState.startTime)
+    );
+    HtmlTimeText.children["end-time"].textContent = (
+        durationToTime(audioState.endTime)
+    );
+
+    const HtmlRanges = HtmlAppPanel.children["playback"].children["ranges"];
+    HtmlRanges.children["start-time-input"].valueAsNumber = (
+        audioState.startTime * 100 / audioState.duration
+    );
+    HtmlRanges.children["end-time-input"].valueAsNumber = (
+        audioState.endTime * 100 / audioState.duration
+    );
+    HtmlRanges.children["progress"].children["start-time"].setAttribute(
+        "style",
+        `--translate:${audioState.startTime * 100 / audioState.duration}%`
+    );
+    HtmlRanges.children["progress"].children["end-time"].setAttribute(
+        "style",
+        `--translate:${audioState.endTime * 100 / audioState.duration}%`
+    );
 
     if (audioState.playing) {
         HtmlAppPanel.setAttribute("data-playing", "1");
@@ -3475,37 +3551,49 @@ const HtmlAppPanelOninput = function (e) {
     } else if ("start-time-input" === target.name) {
         const state = AudioList.get(AudioSelectedIdx);
         assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        const startTime = (
-            ((state.duration) * (target.valueAsNumber)) / 100
-        );
-        if (startTime + 0.5 >= state.endTime) {
-            return;
-        }
+        let startTime = (state.duration * target.valueAsNumber) / 100;
+        let translate = target.value;
 
-        target.parentElement.children["progress"].children["start-time"].setAttribute(
-            "style",
-            "--translate:" + target.value + "%"
-        );
+        if (startTime + 0.5 >= state.endTime) {
+            startTime = state.endTime - 0.5
+            let value = ((state.endTime - 0.5) * 100) / state.duration;
+            translate = String(value);
+            target.valueAsNumber = value;
+
+        }
         state.startTime = startTime;
+        target.nextElementSibling.children["start-time"].setAttribute(
+            "style",
+            "--translate:" + translate + "%"
+        );
+        HtmlAppPanel
+            .children["playback"]
+            .firstElementChild
+            .children["start-time"]
+            .textContent = durationToTime(String(startTime));
 
     } else if ("end-time-input" === target.name) {
         const state = AudioList.get(AudioSelectedIdx);
         assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-
-        const endTime = (
-            (state.duration * target.valueAsNumber) / 100
-        );
-
+        let endTime = (state.duration * target.valueAsNumber) / 100;
+        let translate = target.value;
         if (state.startTime >= endTime - 0.5) {
-            target.valueAsNumber = target.valueAsNumber;
-            return;
+            endTime = state.startTime + 0.5;
+            let value = ((state.startTime + 0.5) * 100) / state.duration;
+            translate = String(value);
+            target.valueAsNumber = value;
         }
 
-        target.parentElement.children["progress"].children["end-time"].setAttribute(
-            "style",
-            "--translate:" + target.value + "%"
-        );
         state.endTime = endTime;
+        target.previousElementSibling.children["end-time"].setAttribute(
+            "style",
+            "--translate:" + translate + "%"
+        );
+        HtmlAppPanel
+            .children["playback"]
+            .firstElementChild
+            .children["end-time"]
+            .textContent = durationToTime(String(endTime));
     }
 }
 
@@ -4114,29 +4202,36 @@ main();
                         </p>
                     </div>
                     <div name="playback">
-                        <input type="range"
-                            name="start-time-input"
-                            class="time-input start-time-input"
-                            min="0"
-                            max="100"
-                            value="0"
-                            step="0.1"
-                        >
-                        <div name="progress" class="progress">
-                            <div name="current" class="current"></div>
-                            <div name="start-point" class="start-point"></div>
-                            <div name="end-point" class="end-point"></div>
-                            <div name="start-time" class="start-time"></div>
-                            <div name="end-time" class="end-time"></div>
+                        <div name="time-text" class="time-text">
+                            <p name="start-time"></p>
+                            <p name="end-time"></p>
                         </div>
-                        <input type="range"
-                            name="end-time-input"
-                            class="time-input end-time-input"
-                            min="0"
-                            max="100"
-                            value="100"
-                            step="0.1"
-                        >
+                        <div name="ranges" class="ranges">
+                            <input type="range"
+                                name="start-time-input"
+                                class="time-input start-time-input"
+                                min="0"
+                                max="100"
+                                value="0"
+                                step="0.1"
+                            >
+                            <div name="progress" class="progress">
+                                <div name="current" class="current"></div>
+                                <div name="start-point" class="start-point"></div>
+                                <div name="end-point" class="end-point"></div>
+                                <div name="start-time" class="start-time"></div>
+                                <div name="end-time" class="end-time"></div>
+                            </div>
+                            <input type="range"
+                                name="end-time-input"
+                                class="time-input end-time-input"
+                                min="0"
+                                max="100"
+                                value="100"
+                                step="0.1"
+                            >
+                        </div>
+                        <p name="current-text" class="current-text"></p>
                     </div>
                     <fieldset name="effects" class="checkboxes">
                         <label class="checkbox" name="delay">

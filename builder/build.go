@@ -23,6 +23,7 @@ type HTMLData struct{
 const (
     ARG_HELP = iota
     ARG_PROD
+    ARG_DEV
     ARG_MINI
     ARG_LEN
 )
@@ -31,12 +32,14 @@ const (
 var argName = [ARG_LEN]string{
     ARG_HELP: "help",
     ARG_PROD: "prod",
+    ARG_DEV: "dev",
     ARG_MINI: "mini",
 }
 
 var helpMessage = [ARG_LEN]string{
     ARG_HELP: "this text",
     ARG_PROD: "adds production data",
+    ARG_DEV: "developer mode",
     ARG_MINI: "minify html files",
 }
 
@@ -49,7 +52,11 @@ type Builder struct{
 func main() {
     var args []string = os.Args[1:]
 
-    if len(args) < 1 || slices.Contains(args, argName[ARG_HELP]) {
+    if len(args) < 1 ||
+    slices.Contains(args, argName[ARG_HELP]) || (
+    !slices.Contains(args, argName[ARG_MINI]) &&
+    !slices.Contains(args, argName[ARG_PROD]) &&
+    !slices.Contains(args, argName[ARG_DEV])) {
         fmt.Print(
             "Usage: "+os.Args[0]+" [OPTIONS]\n",
             "\n",

@@ -29,6 +29,7 @@
 
         <template id="t-audio-element">
             <div class="audio"
+                name="audio"
                 data-playing="0"
                 data-selected="0"
             >
@@ -62,6 +63,7 @@
                 </div>
                 <button name="play"
                     class="button-icon"
+                    type="button"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24"
@@ -92,11 +94,16 @@
                     <p class="sr-only lucide-pause">pause</p>
                 </button>
                 <h3 name="title" class="title"></h3>
-                <small name="probability" title="probability">
+                <small name="probability"
+                    class="probability"
+                    title="probability"
+                >
                     <span name="text"></span><span>%</span>
                 </small>
                 <button name="remove"
                     class="button-icon"
+                    title="remove"
+                    type="button"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24"
@@ -130,7 +137,7 @@
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        class="icon insets"
+                        class="icon-insets"
                     >
                         <circle cx="60" cy="24" r="6"></circle>
                         <circle cx="42" cy="42" r="6"></circle>
@@ -372,258 +379,359 @@
                     data-display="0"
                     data-playing="0"
                 >
-                    <h3 class="title" name="title"></h3>
-                    <button name="play"
+                    <h3 class="title" name="title" id="p-title"></h3>
+                    <div class="module-playback">
+                        <div name="playback">
+                            <div name="time-text" class="time-text">
+                                <p name="start-time" id="p-start-time-text"></p>
+                                <p name="end-time" id="p-end-time-text"></p>
+                            </div>
+                            <div name="ranges" class="ranges">
+                                <input type="range"
+                                    name="start-time-input"
+                                    class="time-input start-time-input"
+                                    id="p-start-time-input"
+                                    min="0"
+                                    max="100"
+                                    value="0"
+                                    step="0.1"
+                                >
+                                <div name="bars" class="bars">
+                                    <div name="current"
+                                        class="current"
+                                        id="p-current-bar"
+                                    ></div>
+                                    <div name="start-point"
+                                        class="start-point"
+                                        id="p-start-point-bar"
+                                    ></div>
+                                    <div name="end-point"
+                                        class="end-point"
+                                        id="p-end-point-bar"
+                                    ></div>
+                                    <div name="start-time"
+                                        class="start-time"
+                                        id="p-start-time-bar"
+                                    ></div>
+                                    <div name="end-time"
+                                        class="end-time"
+                                        id="p-end-time-bar"
+                                    ></div>
+                                </div>
+                                <input type="range"
+                                    name="end-time-input"
+                                    id="p-end-time-input"
+                                    class="time-input end-time-input"
+                                    min="0"
+                                    max="100"
+                                    value="100"
+                                    step="0.1"
+                                >
+                            </div>
+                            <p name="current-text"
+                                class="current-text"
+                                id="p-current-text"
+                            ></p>
+                        </div>
+                        <div name="controls"
+                            id="p-controls"
+                            data-prev="0"
+                            data-next="0"
+                        >
+                            <button name="prev"
+                                class="prev button-icon"
+                                type="button"
+                                title="prev audio"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="icon lucide-chevron-left"
+                                >
+                                    <path d="m15 18-6-6 6-6"/>
+                                </svg>
+                                <span class="hidde-interactive">previous audio</span>
+                            </button>
+                            <button name="play"
+                                class="button-icon"
+                                type="button"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    stroke="currentColor"
+                                    stroke-width="3"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="icon lucide-play"
+                                >
+                                    <polygon points="6 3 20 12 6 21 6 3"/>
+                                </svg>
+                                <p class="sr-only lucide-play">play</p>
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="icon lucide-pause"
+                                >
+                                    <rect x="14" y="4" width="4" height="16" rx="1"/>
+                                    <rect x="6" y="4" width="4" height="16" rx="1"/>
+                                </svg>
+                                <p class="sr-only lucide-pause">pause</p>
+                            </button>
+                            <button name="next"
+                                class="next button-icon"
+                                type="button"
+                                title="next audio"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg"
+                                    width="24" height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="icon lucide-chevron-right"
+                                >
+                                    <path d="m9 18 6-6-6-6"/>
+                                </svg>
+                                <span class="hidde-interactive">next audio</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="module-options">
+                        <label class="volume" name="volume" id="p-volume">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                width="24" height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="icon lucide-volume-2"
+                            >
+                                <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>
+                                <path d="M16 9a5 5 0 0 1 0 6"/>
+                                <path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>
+                            </svg>
+                            <input type="range"
+                                id="p-volume-input"
+                                min="0"
+                                max="15"
+                                step="1"
+                                value="8"
+                                name="volume-input"
+                            >
+                            <span name="volume-text"
+                                id="p-volume-text"
+                            >80%</span>
+                        </label>
+                        <section name="probability">
+                            <h4>Probability</h4>
+                            <div class="scroll-buttons">
+                                <button class="left button-icon" name="p-left">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon lucide-triangle"
+                                    >
+                                        <path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                    </svg>
+                                </button>
+                                <p name="value" id="p-probability-value">1</p>
+                                <button class="right button-icon" name="p-right">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon lucide-triangle"
+                                    >
+                                        <path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                                    </svg>
+                                </button>
+                                <span name="text"
+                                    id="p-probability-text"
+                                >100.0</span>
+                                <span>%</span>
+                            </div>
+                        </section>
+                        <fieldset name="effects"
+                            class="checkboxes"
+                            id="p-effects"
+                        >
+                            <label class="checkbox" name="delay">
+                                <input type="checkbox"
+                                    name="delay"
+                                    class="hidde-interactive"
+                                    checked
+                                >
+                                <span class="button button-icon-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon-checkbox lucide-square"
+                                    >
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    </svg>
+                                    <span>Delay</span>
+                                </span>
+                            </label>
+                            <label class="checkbox" name="filter">
+                                <input type="checkbox"
+                                    name="filter"
+                                    class="hidde-interactive"
+                                    checked
+                                >
+                                <span class="button button-icon-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon-checkbox lucide-square"
+                                    >
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    </svg>
+                                    <span>Filter</span>
+                                </span>
+                            </label>
+                            <label class="checkbox" name="panner">
+                                <input type="checkbox"
+                                    name="panner"
+                                    class="hidde-interactive"
+                                    checked
+                                >
+                                <span class="button button-icon-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon-checkbox lucide-square"
+                                    >
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    </svg>
+                                    <span>Panner</span>
+                                </span>
+                            </label>
+                            <label class="checkbox" name="pbrate">
+                                <input type="checkbox"
+                                    name="pbrate"
+                                    class="hidde-interactive"
+                                    checked
+                                >
+                                <span class="button button-icon-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon-checkbox lucide-square"
+                                    >
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    </svg>
+                                    <span>Pb Rate</span>
+                                </span>
+                            </label>
+                            <label class="checkbox" name="rsp">
+                                <input type="checkbox"
+                                    name="rsp"
+                                    class="hidde-interactive"
+                                    checked
+                                >
+                                <span class="button button-icon-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon-checkbox lucide-square"
+                                    >
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    </svg>
+                                    <span>RSP</span>
+                                </span>
+                            </label>
+                            <label class="checkbox" name="rep">
+                                <input type="checkbox"
+                                    name="rep"
+                                    class="hidde-interactive"
+                                    checked
+                                >
+                                <span class="button button-icon-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon-checkbox lucide-square"
+                                    >
+                                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                                    </svg>
+                                    <span>REP</span>
+                                </span>
+                            </label>
+                        </fieldset>
+                    </div>
+                    <button name="close"
                         class="button-icon"
+                        title="close panel"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            width="24" height="24"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            stroke="currentColor"
-                            stroke-width="3"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="icon lucide-play"
-                        >
-                            <polygon points="6 3 20 12 6 21 6 3"/>
-                        </svg>
-                        <p class="sr-only lucide-play">play</p>
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            width="24" height="24"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="icon lucide-pause"
-                        >
-                            <rect x="14" y="4" width="4" height="16" rx="1"/>
-                            <rect x="6" y="4" width="4" height="16" rx="1"/>
-                        </svg>
-                        <p class="sr-only lucide-pause">pause</p>
-                    </button>
-                    <label class="volume" name="volume">
                         <svg xmlns="http://www.w3.org/2000/svg"
                             width="24" height="24"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
+                            stroke-width="3"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            class="icon lucide-volume-2"
+                            class="icon lucide-x"
                         >
-                            <path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/>
-                            <path d="M16 9a5 5 0 0 1 0 6"/>
-                            <path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>
+                            <path d="M18 6 6 18"/>
+                            <path d="m6 6 12 12"/>
                         </svg>
-                        <input type="range"
-                            min="0"
-                            max="15"
-                            step="1"
-                            value="8"
-                            name="volume-input"
-                        >
-                        <span name="volume-text">80%</span>
-                    </label>
-                    <div name="probability">
-                        <div class="scroll-buttons">
-                            <button class="left button-icon" name="p-left">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon lucide-triangle"
-                                >
-                                    <path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                                </svg>
-                            </button>
-                            <p name="value">1</p>
-                            <button class="right button-icon" name="p-right">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon lucide-triangle"
-                                >
-                                    <path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <p class="probability">
-                            <span name="value">100.0</span>
-                            <span>%</span>
-                        </p>
-                    </div>
-                    <div name="playback">
-                        <input type="range"
-                            name="start-time-input"
-                            class="time-input start-time-input"
-                            min="0"
-                            max="100"
-                            value="0"
-                            step="0.1"
-                        >
-                        <div name="progress" class="progress">
-                            <div name="current" class="current"></div>
-                            <div name="start-point" class="start-point"></div>
-                            <div name="end-point" class="end-point"></div>
-                            <div name="start-time" class="start-time"></div>
-                            <div name="end-time" class="end-time"></div>
-                        </div>
-                        <input type="range"
-                            name="end-time-input"
-                            class="time-input end-time-input"
-                            min="0"
-                            max="100"
-                            value="100"
-                            step="0.1"
-                        >
-                    </div>
-                    <fieldset name="effects" class="checkboxes">
-                        <label class="checkbox" name="delay">
-                            <input type="checkbox"
-                                name="delay"
-                                class="hidde-interactive"
-                                checked
-                            >
-                            <span class="button button-icon-text">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon-checkbox lucide-square"
-                                >
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                </svg>
-                                <span>Delay</span>
-                            </span>
-                        </label>
-                        <label class="checkbox" name="filter">
-                            <input type="checkbox"
-                                name="filter"
-                                class="hidde-interactive"
-                                checked
-                            >
-                            <span class="button button-icon-text">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon-checkbox lucide-square"
-                                >
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                </svg>
-                                <span>Filter</span>
-                            </span>
-                        </label>
-                        <label class="checkbox" name="panner">
-                            <input type="checkbox"
-                                name="panner"
-                                class="hidde-interactive"
-                                checked
-                            >
-                            <span class="button button-icon-text">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon-checkbox lucide-square"
-                                >
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                </svg>
-                                <span>Panner</span>
-                            </span>
-                        </label>
-                        <label class="checkbox" name="pbrate">
-                            <input type="checkbox"
-                                name="pbrate"
-                                class="hidde-interactive"
-                                checked
-                            >
-                            <span class="button button-icon-text">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon-checkbox lucide-square"
-                                >
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                </svg>
-                                <span>Pb Rate</span>
-                            </span>
-                        </label>
-                        <label class="checkbox" name="rsp">
-                            <input type="checkbox"
-                                name="rsp"
-                                class="hidde-interactive"
-                                checked
-                            >
-                            <span class="button button-icon-text">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon-checkbox lucide-square"
-                                >
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                </svg>
-                                <span>RSP</span>
-                            </span>
-                        </label>
-                        <label class="checkbox" name="rep">
-                            <input type="checkbox"
-                                name="rep"
-                                class="hidde-interactive"
-                                checked
-                            >
-                            <span class="button button-icon-text">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon-checkbox lucide-square"
-                                >
-                                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                                </svg>
-                                <span>REP</span>
-                            </span>
-                        </label>
-                    </fieldset>
+                    </button>
                 </section>
                 <div id="app-container" class="audio-container"></div>
                 <section id="app-config" class="configuration" data-show="0">

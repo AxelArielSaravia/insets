@@ -312,6 +312,60 @@ assert(HtmlAppMenu !== null, "#app-menu is not found");
 const HtmlAppPanel = document.getElementById("app-panel");
 assert(HtmlAppPanel !== null, "#app-panel is not found");
 
+const HtmlPTitle = document.getElementById("p-title");
+assert(HtmlPTitle !== null, "#p-title is not found");
+
+const HtmlPVolume = document.getElementById("p-volume");
+assert(HtmlPVolume !== null, "#p-volume is not found");
+
+const HtmlPVolumeInput = document.getElementById("p-volume-input");
+assert(HtmlPVolumeInput !== null, "#p-volume-input is not found");
+
+const HtmlPVolumeText = document.getElementById("p-volume-text");
+assert(HtmlPVolumeText !== null, "#p-volume-text is not found");
+
+const HtmlPProbValue = document.getElementById("p-probability-value");
+assert(HtmlPProbValue !== null, "#p-probability-value is not found");
+
+const HtmlPProbText = document.getElementById("p-probability-text");
+assert(HtmlPProbText !== null, "#p-probability-text is not found");
+
+const HtmlPEffects = document.getElementById("p-effects");
+assert(HtmlPEffects !== null, "#p-effects is not found");
+
+const HtmlPStartTimeText = document.getElementById("p-start-time-text");
+assert(HtmlPStartTimeText !== null, "#p-start-time-text is not found");
+
+const HtmlPStartTimeInput = document.getElementById("p-start-time-input");
+assert(HtmlPStartTimeInput !== null, "#p-start-time-input is not found");
+
+const HtmlPStartTimeBar = document.getElementById("p-start-time-bar");
+assert(HtmlPStartTimeBar !== null, "#p-start-time-bar is not found");
+
+const HtmlPEndTimeText = document.getElementById("p-end-time-text");
+assert(HtmlPEndTimeText !== null, "#p-end-time-text is not found");
+
+const HtmlPEndTimeInput = document.getElementById("p-end-time-input");
+assert(HtmlPEndTimeInput !== null, "#p-end-time-input is not found");
+
+const HtmlPEndTimeBar = document.getElementById("p-end-time-bar");
+assert(HtmlPEndTimeBar !== null, "#p-end-time-bar is not found");
+
+const HtmlPCurrentBar = document.getElementById("p-current-bar");
+assert(HtmlPCurrentBar !== null, "#p-current-bar is not found");
+
+const HtmlPCurrentText = document.getElementById("p-current-text");
+assert(HtmlPCurrentText !== null, "#p-current-text is not found");
+
+const HtmlPStartPointBar = document.getElementById("p-start-point-bar");
+assert(HtmlPStartPointBar !== null, "#p-start-point-bar is not found");
+
+const HtmlPEndPointBar = document.getElementById("p-end-point-bar");
+assert(HtmlPEndPointBar !== null, "#p-end-point-bar is not found");
+
+const HtmlPControls = document.getElementById("p-controls");
+assert(HtmlPControls !== null, "#p-controls is not found");
+
 const HtmlCSetmax = document.getElementById("c-set-max");
 assert(HtmlCSetmax !== null, "#c-set-max is not found");
 
@@ -862,31 +916,14 @@ function durationToShortTime(val) {
 
 /**@type{(startval: number, endval: number) => undefined}*/
 const updateHtmlPanelRP = function (startval, endval) {
-    const HtmlProgress = HtmlAppPanel.children["playback"].children["progress"];
-
-    HtmlProgress.children["start-point"].setAttribute(
-        "style",
-        `--translate: ${startval}%`
-    );
-    HtmlProgress.children["end-point"].setAttribute(
-        "style",
-        `--translate: ${endval}%`
-    );
-    //HtmlTime.children["start-point"].value = startval;
-    //HtmlTime.children["end-point"].value = endval;
+    HtmlPStartPointBar.setAttribute("style", `--translate:${startval}%`);
+    HtmlPEndPointBar.setAttribute("style", `--translate:${endval}%`);
 };
 
 /**@type{(pval: number, tval: number) => undefined}*/
 const updateHtmlPanelCurrentTime = function (pval, tval) {
-    const HtmlProgress = HtmlAppPanel.children["playback"].children["progress"];
-    HtmlProgress.children["current"].setAttribute(
-        "style",
-        `--translate: ${pval}%`
-    );
-
-    //const HtmlTime = HtmlAppPanel.children["playback"].children["time"]
-    //HtmlTime.children["current-text"].textContent = durationToTime(tval);
-    //HtmlTime.children["current-bar"].value = pval;
+    HtmlPCurrentBar.setAttribute("style", `--translate:${pval}%`);
+    HtmlPCurrentText.textContent = durationToTime(tval);
 };
 
 const verifyHtmlCSets = function () {
@@ -930,11 +967,11 @@ const ZombieAudioOncanplaythrough = function (e) {
     HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
     HtmlAudio.addEventListener("ended", AudioOnended, true);
 
-    HtmlAudioElement.children["title"].textContent = HtmlAudio._name;
-
     //there is a new AudioEvent
     AudioEventsSum += 1;
-    HtmlAudioElement.children["probability"].firstElementChild.textContent = (
+
+    HtmlAudioElement._HtmlTitle.textContent = HtmlAudio._name;
+    HtmlAudioElement._HtmlProbText.textContent = (
         (1 / AudioEventsSum * 100).toFixed(2)
     );
 
@@ -951,7 +988,7 @@ const ZombieAudioOncanplaythrough = function (e) {
         assert(audioSelected !== undefined);
         updateHtmlPanelProbability(audioSelected.events);
     }
-}
+};
 
 /**
  * @type{(e: Event) => undefined}*/
@@ -971,14 +1008,18 @@ const AudioOncanplaythrough = function (e) {
     HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
     HtmlAudio.addEventListener("ended", AudioOnended, true);
 
-    HtmlAudioElement.children["title"].insertAdjacentText(
-        "beforeend",
-        HtmlAudio._name
+    HtmlAudioElement._HtmlTitle = HtmlAudioElement.children["title"];
+    HtmlAudioElement._HtmlProbText = (
+        HtmlAudioElement
+        .children["probability"]
+        .firstElementChild
     );
 
     //there is a new AudioEvent
     AudioEventsSum += 1;
-    HtmlAudioElement.children["probability"].firstElementChild.insertAdjacentText(
+
+    HtmlAudioElement._HtmlTitle.insertAdjacentText("beforeend", HtmlAudio._name);
+    HtmlAudioElement._HtmlProbText.insertAdjacentText(
         "beforeend",
         (1 / (AudioEventsSum) * 100).toFixed(2)
     );
@@ -1022,6 +1063,7 @@ const AudioOntimeupdate = function (e) {
         }
     }
 };
+
 const AudioOnended = function (e) {
     const HtmlAudio = e.currentTarget;
     if (HtmlAudio.paused || HtmlAudio.ended) {
@@ -1344,44 +1386,56 @@ const switchTheme = function () {
 
 /**@type{(events: number) => undefined}*/
 const updateHtmlPanelProbability = function (events) {
-    const HtmlProbability = HtmlAppPanel.children["probability"];
-    HtmlProbability.firstElementChild.children["value"].textContent = String(
-        events
-    );
-    HtmlProbability.lastElementChild.firstElementChild.textContent = (
+    HtmlPProbValue.textContent = String(events);
+    HtmlPProbText.textContent = (
         (events / AudioEventsSum * 100).toFixed(2)
     );
 
 };
 
-/**@type{(title: string, audioState: AudioState) => undefined}*/
-const changeHtmlAppPanel = function (title, audioState) {
-    HtmlAppPanel.children["title"].textContent = title
+/**@type{(audioState: AudioState) => undefined}*/
+const changeHtmlAppPanel = function (audioState) {
+    HtmlPTitle.textContent = audioState.html._name;
+    HtmlPVolumeInput.valueAsNumber = audioState.volume;
+    HtmlPVolumeText.textContent = `${audioState.volume*10}%`;
 
-    const HtmlVolume = HtmlAppPanel.children["volume"];
-    HtmlVolume.children["volume-input"].valueAsNumber = audioState.volume;
-    HtmlVolume.children["volume-text"].textContent = `${audioState.volume*10}%`;
+    if (AudioSelectedIdx > 0) {
+        HtmlPControls.setAttribute("data-prev", "1");
+    } else {
+        HtmlPControls.setAttribute("data-prev", "0");
+    }
+    if (AudioSelectedIdx < AudioList.len - 1) {
+        HtmlPControls.setAttribute("data-prev", "1");
+    } else {
+        HtmlPControls.setAttribute("data-prev", "0");
+    }
 
     updateHtmlPanelProbability(audioState.events);
 
-    const effects = HtmlAppPanel.children["effects"];
-    effects.children["delay"].firstElementChild.checked = !audioState.delayDisabled;
-    effects.children["panner"].firstElementChild.checked = !audioState.pannerDisabled;
-    effects.children["filter"].firstElementChild.checked = !audioState.filterDisabled;
-    effects.children["pbrate"].firstElementChild.checked = !audioState.pbrateDisabled;
-    effects.children["rsp"].firstElementChild.checked = !audioState.rspDisabled;
-    effects.children["rep"].firstElementChild.checked = !audioState.repDisabled;
+    HtmlPEffects.children["delay"].firstElementChild.checked = !audioState.delayDisabled;
+    HtmlPEffects.children["panner"].firstElementChild.checked = !audioState.pannerDisabled;
+    HtmlPEffects.children["filter"].firstElementChild.checked = !audioState.filterDisabled;
+    HtmlPEffects.children["pbrate"].firstElementChild.checked = !audioState.pbrateDisabled;
+    HtmlPEffects.children["rsp"].firstElementChild.checked = !audioState.rspDisabled;
+    HtmlPEffects.children["rep"].firstElementChild.checked = !audioState.repDisabled;
 
-    /*
-    const time = HtmlAppPanel.children["playback"].children["time"];
-    if (audioState.duration < 1) {
-        time.children["current-text"].style.width = "4ch"
-    } else if (audioState.duration < 3600) {
-        time.children["current-text"].style.width = "5ch"
-    } else {
-        time.children["current-text"].style.width = "8ch"
-    }
-    */
+    HtmlPStartTimeText.textContent = durationToTime(audioState.startTime);
+    HtmlPEndTimeText.textContent = durationToTime(audioState.endTime);
+
+    HtmlPStartTimeInput.valueAsNumber = (
+        audioState.startTime * 100 / audioState.duration
+    );
+    HtmlPEndTimeInput.valueAsNumber = (
+        audioState.endTime * 100 / audioState.duration
+    );
+    HtmlPStartTimeBar.setAttribute(
+        "style",
+        `--translate:${audioState.startTime * 100 / audioState.duration}%`
+    );
+    HtmlPEndTimeBar.setAttribute(
+        "style",
+        `--translate:${audioState.endTime * 100 / audioState.duration}%`
+    );
 
     if (audioState.playing) {
         HtmlAppPanel.setAttribute("data-playing", "1");
@@ -1409,11 +1463,7 @@ const changeHtmlAppPanelEffect = function (effect, v) {
         || effect === "rsp"
         || effect === "rep"
     ) {
-        HtmlAppPanel
-        .children["effects"]
-        .children[effect]
-        .firstElementChild
-        .checked = v;
+        HtmlPEffects.children[effect].firstElementChild.checked = v;
     }
 }
 
@@ -2225,6 +2275,7 @@ const HtmlAppMenuOninput = function (e) {
 const HtmlAppContainerOnclick = function (e) {
     const target = e.target;
     const name = target.getAttribute("name");
+    console.info({target})
     if ("play" === name) {
         const HtmlAudioElement = target.parentElement;
         let i = getHtmlChildIndex(HtmlAppContainer, HtmlAudioElement);
@@ -2285,8 +2336,15 @@ const HtmlAppContainerOnclick = function (e) {
 
         clearTimeout(timeoutFree)
         timeoutFree = setTimeout(timeoutFreeFn,FREE_TIME);
-    } else if ("title" === name || "pin" === name) {
-        const HTMLAudioElement = target.parentElement;
+    } else if ("title" === name
+        || "pin" === name
+        || "audio" === name
+        || "probability" === name
+    ) {
+        let HTMLAudioElement = target;
+        if ("audio" !== name) {
+            HTMLAudioElement = target.parentElement;
+        }
         if (HTMLAudioElement.getAttribute("data-selected") === "0") {
             let i = getHtmlChildIndex(HtmlAppContainer, HTMLAudioElement);
             assert(i !== -1, "ERROR: index do not exist");
@@ -2307,10 +2365,7 @@ const HtmlAppContainerOnclick = function (e) {
             AudioSelectedIdx = i;
 
             console.info({AudioSelectedIdx});
-            changeHtmlAppPanel(
-                HTMLAudioElement.children["title"].textContent,
-                AudioList.get(i)
-            );
+            changeHtmlAppPanel(AudioList.get(i));
         } else {
             HTMLAudioElement.setAttribute("data-selected", "0");
             HtmlAppPanel.setAttribute("data-display", "0");
@@ -2368,6 +2423,43 @@ const HtmlAppPanelOnclick = function (e) {
             audioAction(AudioSelectedIdx, "pause");
             console.info("pause: audio #",AudioSelectedIdx);
         }
+    } else if ("close" === target.name) {
+        const HTMLAudioElement = HtmlAppContainer.children[AudioSelectedIdx];
+        HTMLAudioElement.setAttribute("data-selected", "0");
+        HtmlAppPanel.setAttribute("data-display", "0");
+        //SELECTED
+        AudioSelectedIdx = -1;
+
+    } else if ("prev" === target.name) {
+        if (AudioList.len < 2) {
+            target.parentElement.setAttribute("data-prev", "0");
+            return;
+        }
+        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "0");
+        if (AudioSelectedIdx < 1) {
+            AudioSelectedIdx = AudioList.len - 1;
+        } else {
+            AudioSelectedIdx -= 1;
+        }
+        const audioState = AudioList.get(AudioSelectedIdx);
+        assert(audioState !== undefined, "ERROR: AudioList.get not found audio")
+        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "1");
+        changeHtmlAppPanel(audioState);
+    } else if ("next" === target.name) {
+        if (AudioList.len < 2) {
+            target.parentElement.setAttribute("data-next", "0");
+            return;
+        }
+        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "0");
+        if (AudioSelectedIdx === AudioList.len - 1) {
+            AudioSelectedIdx = 0;
+        } else {
+            AudioSelectedIdx += 1;
+        }
+        const audioState = AudioList.get(AudioSelectedIdx);
+        assert(audioState !== undefined, "ERROR: AudioList.get not found audio")
+        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "1");
+        changeHtmlAppPanel(audioState);
     }
 };
 
@@ -2445,37 +2537,35 @@ const HtmlAppPanelOninput = function (e) {
     } else if ("start-time-input" === target.name) {
         const state = AudioList.get(AudioSelectedIdx);
         assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        const startTime = (
-            ((state.duration) * (target.valueAsNumber)) / 100
-        );
-        if (startTime + 0.5 >= state.endTime) {
-            return;
-        }
+        let startTime = (state.duration * target.valueAsNumber) / 100;
+        let translate = target.value;
 
-        target.parentElement.children["progress"].children["start-time"].setAttribute(
-            "style",
-            "--translate:" + target.value + "%"
-        );
+        if (startTime + 0.5 >= state.endTime) {
+            startTime = state.endTime - 0.5
+            let value = ((state.endTime - 0.5) * 100) / state.duration;
+            translate = String(value);
+            target.valueAsNumber = value;
+
+        }
         state.startTime = startTime;
+        HtmlPStartTimeBar.setAttribute("style", "--translate:"+translate+"%");
+        HtmlPStartTimeText.textContent = durationToTime(String(startTime));
 
     } else if ("end-time-input" === target.name) {
         const state = AudioList.get(AudioSelectedIdx);
         assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-
-        const endTime = (
-            (state.duration * target.valueAsNumber) / 100
-        );
-
+        let endTime = (state.duration * target.valueAsNumber) / 100;
+        let translate = target.value;
         if (state.startTime >= endTime - 0.5) {
-            target.valueAsNumber = target.valueAsNumber;
-            return;
+            endTime = state.startTime + 0.5;
+            let value = ((state.startTime + 0.5) * 100) / state.duration;
+            translate = String(value);
+            target.valueAsNumber = value;
         }
 
-        target.parentElement.children["progress"].children["end-time"].setAttribute(
-            "style",
-            "--translate:" + target.value + "%"
-        );
         state.endTime = endTime;
+        HtmlPEndTimeBar.setAttribute("style", "--translate:"+translate+"%");
+        HtmlPEndTimeText.textContent = durationToTime(String(endTime));
     }
 }
 
@@ -2547,6 +2637,38 @@ const HtmlPresOpenOnclick = function () {
 
     return openApp();
 };
+const HtmlVolumeOnwheel = function (e) {
+    const name = e.target.getAttribute("name");
+    let input; e.target.parentElement.children["volume-input"];
+    if (name === "volume-input" || name === "volume-text") {
+        //can throw Error
+        input = e.target.parentElement.children["volume-input"];
+    } else if (name === "volume") {
+        //can throw Error
+        input = e.target.children["volume-input"];
+    } else {
+        return;
+    }
+
+    const state = AudioList.get(AudioSelectedIdx);
+    assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
+
+    if (e.deltaY > 0) {
+        if (state.volume - 1 < LIMIT_VOLUME_MIN) {
+            return;
+        }
+        state.volume -= 1;
+    } else {
+        if (state.volume + 1 > LIMIT_VOLUME_MAX) {
+            return;
+        }
+        state.volume += 1;
+    }
+    input.valueAsNumber = state.volume;
+    input.nextElementSibling.textContent = `${state.volume * 10}%`;
+    state.input.gain.value = state.volume / 10;
+};
+
 
 const openApp = function () {
     document.body.addEventListener("keyup", BodyOnkeyup, true);
@@ -2581,39 +2703,7 @@ const openApp = function () {
 
     HtmlAppPanel.addEventListener("input", HtmlAppPanelOninput, false);
     HtmlAppPanel.addEventListener("click", HtmlAppPanelOnclick, false);
-
-    HtmlAppPanel.children["volume"].addEventListener("wheel", function (e) {
-        const name = e.target.getAttribute("name");
-        let input; e.target.parentElement.children["volume-input"];
-        if (name === "volume-input" || name === "volume-text") {
-            //can throw Error
-            input = e.target.parentElement.children["volume-input"];
-        } else if (name === "volume") {
-            //can throw Error
-            input = e.target.children["volume-input"];
-        } else {
-            return;
-        }
-
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-
-        if (e.deltaY > 0) {
-            if (state.volume - 1 < LIMIT_VOLUME_MIN) {
-                return;
-            }
-            state.volume -= 1;
-        } else {
-            if (state.volume + 1 > LIMIT_VOLUME_MAX) {
-                return;
-            }
-            state.volume += 1;
-        }
-        input.valueAsNumber = state.volume;
-        input.nextElementSibling.textContent = `${state.volume * 10}%`;
-        state.input.gain.value = state.volume / 10;
-
-    }, false);
+    HtmlPVolume.addEventListener("wheel", HtmlVolumeOnwheel, false);
 };
 
 const main = function () {
