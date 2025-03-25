@@ -435,8 +435,7 @@
                         </div>
                         <div name="controls"
                             id="p-controls"
-                            data-prev="0"
-                            data-next="0"
+                            data-scroll="0"
                         >
                             <button name="prev"
                                 class="prev button-icon"
@@ -572,8 +571,7 @@
                                 </button>
                                 <span name="text"
                                     id="p-probability-text"
-                                >100.0</span>
-                                <span>%</span>
+                                >100.00%</span>
                             </div>
                         </section>
                         <fieldset name="effects"
@@ -723,13 +721,14 @@
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="3"
+                            stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            class="icon lucide-x"
+                            class="icon lucide-arrow-down-from-line"
                         >
-                            <path d="M18 6 6 18"/>
-                            <path d="m6 6 12 12"/>
+                            <path d="M19 3H5"/>
+                            <path d="M12 21V7"/>
+                            <path d="m6 15 6 6 6-6"/>
                         </svg>
                     </button>
                 </section>
@@ -821,9 +820,12 @@
                     <h2>Configuration</h2>
                     <div class="effects">
                         <details class="sets"
-                            title="Here are the probability values of audios sets sizes for the executions. The maximum size of a set that can be executed is 15"
+                            id="c-set-details"
+                            data-elements="0"
                         >
-                            <summary>
+                            <summary
+                                title="Here are the probability values of audios sets sizes for the executions. The maximum size of a set that can be executed is 15"
+                            >
                                 <h3>Sets</h3>
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                     width="24" height="24"
@@ -840,26 +842,151 @@
                             </summary>
                             <div class="general-buttons">
                                 <label class="max-elements">
-                                    <span>Max elemets</span>
-                                    <select name="set-max" id="c-set-max" size="">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                        <option value="6">6</option>
-                                        <option value="7">7</option>
-                                        <option value="8">8</option>
-                                        <option value="9">9</option>
-                                        <option value="10">10</option>
-                                        <option value="11">11</option>
-                                        <option value="12">12</option>
-                                        <option value="13">13</option>
-                                        <option value="14">14</option>
-                                        <option value="15"selected>15</option>
-                                    </select>
+                                    <input type="checkbox"
+                                        name="elements-checkbox"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>Max elements</span>
+                                    <span id="c-max-elements">15</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                        width="24" height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="icon lucide-chevron-down-icon lucide-chevron-down"
+                                    >
+                                        <path d="m6 9 6 6 6-6"/>
+                                    </svg>
                                 </label>
                                 <button name="set-reset">reset</button>
+                            </div>
+                            <div class="elements-radios"
+                                id="c-set-radios"
+                            >
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="1"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>1</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="2"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>2</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="3"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>3</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="4"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>4</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="5"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>5</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="6"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>6</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="7"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>7</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="8"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>8</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="9"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>9</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="10"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>10</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="11"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>11</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="12"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>12</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="13"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>13</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="14"
+                                        class="hidde-interactive"
+                                    >
+                                    <span>14</span>
+                                </label>
+                                <label class="radio">
+                                    <input type="radio"
+                                        name="elements-radio"
+                                        value="15"
+                                        class="hidde-interactive"
+                                        checked
+                                    >
+                                    <span>15</span>
+                                </label>
                             </div>
                             <table>
                                 <thead>

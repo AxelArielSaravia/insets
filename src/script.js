@@ -60,6 +60,22 @@ const CARDINAL_MAX = 15;
 const EVENTS_MAX_VALUE = 80;
 const EVENTS_MIN_VALUE = 0;
 
+const AlertAnimation = {
+    keyframes: [{color: "red"}],
+    timing: {
+        duration: 300,
+        iterations: 3,
+    }
+};
+const SelectAnimation = {
+    keyframes: [{"--color-audio-text": "var(--color-audio-select)"}],
+    timing: {
+        duration: 800,
+        iterations: 1,
+        delay: 0
+    }
+};
+
 const SetEvents = {
     cap: CARDINAL_MAX + 1,
     max: CARDINAL_MAX,
@@ -86,6 +102,8 @@ const startedIdNext = function () {
     }
     return StartedId;
 };
+
+let reduceMotion = false;
 
 let DelayAreAllDisable = DEFAULT_AREALLDISABLE;
 let DelayTimemax = DEFAULT_DELAY_TIMEMAX;
@@ -366,8 +384,14 @@ assert(HtmlPEndPointBar !== null, "#p-end-point-bar is not found");
 const HtmlPControls = document.getElementById("p-controls");
 assert(HtmlPControls !== null, "#p-controls is not found");
 
-const HtmlCSetmax = document.getElementById("c-set-max");
-assert(HtmlCSetmax !== null, "#c-set-max is not found");
+const HtmlCSetDetails = document.getElementById("c-set-details");
+assert(HtmlCSetDetails !== null, "#c-set-details is not found");
+
+const HtmlCMaxElements = document.getElementById("c-max-elements");
+assert(HtmlCMaxElements !== null, "#c-max-elements is not found");
+
+const HtmlCSetRadios = document.getElementById("c-set-radios");
+assert(HtmlCSetRadios !== null, "#c-set-radios is not found");
 
 const HtmlCSets = document.getElementById("c-sets");
 assert(HtmlCSets !== null, "#c-sets is not found");
@@ -832,6 +856,7 @@ const audioAction = function (i, action) {
         return true;
     } else if ("remove" === action) {
         AudioEventsSum -= state.events;
+        assert(AudioEventsSum > -1, "ERROR: AudioEventsSum is less than 0");
         audioRemove(state, i);
         return true;
     }
@@ -988,6 +1013,9 @@ const ZombieAudioOncanplaythrough = function (e) {
         assert(audioSelected !== undefined);
         updateHtmlPanelProbability(audioSelected.events);
     }
+    if (AudioList.len > 1) {
+        HtmlPControls.setAttribute("data-scroll", "1");
+    }
 };
 
 /**
@@ -1034,6 +1062,9 @@ const AudioOncanplaythrough = function (e) {
         let audioSelected = AudioList.get(AudioSelectedIdx);
         assert(audioSelected !== undefined);
         updateHtmlPanelProbability(audioSelected.events);
+    }
+    if (AudioList.len > 1) {
+        HtmlPControls.setAttribute("data-scroll", "1");
     }
 };
 
@@ -1343,12 +1374,43 @@ const randomExecution = function (id) {
             let end = 0;
             if (SelectedAudios.all) {
                 end = AudioList.len;
+                if (AudioSelectedIdx !== -1 && !reduceMotion) {
+                    HtmlPTitle.animate(
+                        SelectAnimation.keyframes,
+                        SelectAnimation.timing
+                    );
+                }
+                for (let i = 0; i < end; i += 1) {
+                    const HtmlAudio = HtmlAppContainer.children[i];
+                    HtmlAudio.setAttribute("data-playing", "1");
+                    if (!reduceMotion) {
+                        HtmlAudio.animate(
+                            SelectAnimation.keyframes,
+                            SelectAnimation.timing
+                        );
+                    }
+                    audioAction(i, "play",)
+                }
             } else {
                 end = SelectedAudios.len;
-            }
-            for (let i = 0; i < end; i += 1) {
-                audioAction(i, "play",)
-                HtmlAppContainer.children[i].setAttribute("data-playing", "1");
+                for (let i = 0; i < end; i += 1) {
+                    const j = SelectedAudios.buf[i];
+                    audioAction(j, "play",)
+                    const HtmlAudio = HtmlAppContainer.children[j];
+                    HtmlAudio.setAttribute("data-playing", "1");
+                    if (!reduceMotion) {
+                        HtmlAudio.animate(
+                            SelectAnimation.keyframes,
+                            SelectAnimation.timing
+                        );
+                        if (AudioSelectedIdx === j) {
+                            HtmlPTitle.animate(
+                                SelectAnimation.keyframes,
+                                SelectAnimation.timing
+                            );
+                        }
+                    }
+                }
             }
         }
         //we asume that there is no executeTimeout active
@@ -1387,10 +1449,9 @@ const switchTheme = function () {
 /**@type{(events: number) => undefined}*/
 const updateHtmlPanelProbability = function (events) {
     HtmlPProbValue.textContent = String(events);
-    HtmlPProbText.textContent = (
+    HtmlPProbText.textContent = `${
         (events / AudioEventsSum * 100).toFixed(2)
-    );
-
+    }%`;
 };
 
 /**@type{(audioState: AudioState) => undefined}*/
@@ -1398,17 +1459,6 @@ const changeHtmlAppPanel = function (audioState) {
     HtmlPTitle.textContent = audioState.html._name;
     HtmlPVolumeInput.valueAsNumber = audioState.volume;
     HtmlPVolumeText.textContent = `${audioState.volume*10}%`;
-
-    if (AudioSelectedIdx > 0) {
-        HtmlPControls.setAttribute("data-prev", "1");
-    } else {
-        HtmlPControls.setAttribute("data-prev", "0");
-    }
-    if (AudioSelectedIdx < AudioList.len - 1) {
-        HtmlPControls.setAttribute("data-prev", "1");
-    } else {
-        HtmlPControls.setAttribute("data-prev", "0");
-    }
 
     updateHtmlPanelProbability(audioState.events);
 
@@ -1530,7 +1580,7 @@ const HtmlAppConfigOnclick = function (e) {
                 (SetEvents.buf[i] / SetEvents.sum * 100).toFixed(1)
             );
         }
-        HtmlCSetmax.value = String(SetEvents.max); 
+        HtmlCMaxElements.textContent = String(SetEvents.max);
     } else if ("set-left" === target.name) {
         const HtmlSet = target.parentElement.parentElement;
         if (1 === SetEvents.sum) {
@@ -1614,7 +1664,12 @@ const HtmlAppConfigOnclick = function (e) {
         if (TimeTemporalmax - 600 < TimeTemporalmin) {
             HtmlCTimemaxUpdate(TimeTemporalmin);
             TimeTemporalmax = TimeTemporalmin;
-            HtmlCTimeAlert(HtmlCTimemin);
+            if (!reduceMotion) {
+                HtmlCTimemin.animate(
+                    AlertAnimation.keyframes,
+                    AlertAnimation.timing
+                );
+            }
         } else {
             HtmlCTimemaxMM.textContent = timeIntervalFormat(
                 Math.floor((TimeTemporalmax - 600) / 600)
@@ -1643,7 +1698,12 @@ const HtmlAppConfigOnclick = function (e) {
         if (TimeTemporalmax - 10 < TimeTemporalmin) {
             HtmlCTimemaxUpdate(TimeTemporalmin);
             TimeTemporalmax = TimeTemporalmin;
-            HtmlCTimeAlert(HtmlCTimemin);
+            if (!reduceMotion) {
+                HtmlCTimemin.animate(
+                    AlertAnimation.keyframes,
+                    AlertAnimation.timing
+                );
+            }
         } else {
             HtmlCTimemaxMM.textContent = timeIntervalFormat(
                 Math.floor((TimeTemporalmax - 10) / 600)
@@ -1672,7 +1732,12 @@ const HtmlAppConfigOnclick = function (e) {
             TimeTemporalmax -= 1;
             HtmlCTimeChanged();
         } else {
-            HtmlCTimeAlert(HtmlCTimemin);
+            if (!reduceMotion) {
+                HtmlCTimemin.animate(
+                    AlertAnimation.keyframes,
+                    AlertAnimation.timing
+                );
+            }
         }
 
     } else if ("time-min-mm-up" === target.name) {
@@ -1680,7 +1745,12 @@ const HtmlAppConfigOnclick = function (e) {
         if (TimeTemporalmin + 600 > TimeTemporalmax) {
             HtmlCTimeminUpdate(TimeTemporalmax);
             TimeTemporalmin = TimeTemporalmax;
-            HtmlCTimeAlert(HtmlCTimemax);
+            if (!reduceMotion) {
+                HtmlCTimemax.animate(
+                    AlertAnimation.keyframes,
+                    AlertAnimation.timing
+                );
+            }
         } else {
             HtmlCTimeminMM.textContent = timeIntervalFormat(
                 Math.floor((TimeTemporalmin + 600) / 600)
@@ -1705,7 +1775,12 @@ const HtmlAppConfigOnclick = function (e) {
         if (TimeTemporalmin + 10 > TimeTemporalmax) {
             HtmlCTimeminUpdate(TimeTemporalmax);
             TimeTemporalmin = TimeTemporalmax;
-            HtmlCTimeAlert(HtmlCTimemax);
+            if (!reduceMotion) {
+                HtmlCTimemax.animate(
+                    AlertAnimation.keyframes,
+                    AlertAnimation.timing
+                );
+            }
         } else {
             HtmlCTimeminMM.textContent = timeIntervalFormat(
                 Math.floor((TimeTemporalmin + 10) / 600)
@@ -1739,7 +1814,12 @@ const HtmlAppConfigOnclick = function (e) {
             TimeTemporalmin += 1;
             HtmlCTimeChanged();
         } else {
-            HtmlCTimeAlert(HtmlCTimemax);
+            if (!reduceMotion) {
+                HtmlCTimemax.animate(
+                    AlertAnimation.keyframes,
+                    AlertAnimation.timing
+                );
+            }
         }
 
     } else if ("time-min-ms-down" === target.name) {
@@ -1889,9 +1969,16 @@ const HtmlAppConfigOnclick = function (e) {
  * @type{(e: InputEvent) => undefined}*/
 const HtmlAppConfigOninput = function (e) {
     const target = e.target;
-    if ("set-max" === target.name) {
+    if ("elements-checkbox" === target.name) {
+        console.info("elements-checkbox",{target})
+        if (HtmlCSetDetails.getAttribute("data-elements") === "0") {
+            HtmlCSetDetails.setAttribute("data-elements", "1");
+        } else {
+            HtmlCSetDetails.setAttribute("data-elements", "0");
+        }
+    } else if ("elements-radio" === target.name) {
         const value = Number(target.value);
-        if (value === SetEvents.max) {
+        if (value === SetEvents.max || value < 1) {
             return;
         }
         assert(0 < value && value < SetEvents.cap);
@@ -1929,6 +2016,9 @@ const HtmlAppConfigOninput = function (e) {
         }
         SetEvents.max = value;
         updateHtmlCSets();
+
+        HtmlCMaxElements.textContent = target.value;
+        HtmlCSetDetails.setAttribute("data-elements", "0");
 
     } else if ("fadein" === target.name) {
         FadeIn = target.valueAsNumber;
@@ -2241,9 +2331,6 @@ const HtmlAppMenuOnclick = function (e) {
 
         AudioEventsSum = 0;
 
-        //TODO
-        //REMOVE THIS
-        //SELECTED
         AudioSelectedIdx = -1;
         HtmlAppPanel.setAttribute("data-display", "0");
 
@@ -2275,7 +2362,6 @@ const HtmlAppMenuOninput = function (e) {
 const HtmlAppContainerOnclick = function (e) {
     const target = e.target;
     const name = target.getAttribute("name");
-    console.info({target})
     if ("play" === name) {
         const HtmlAudioElement = target.parentElement;
         let i = getHtmlChildIndex(HtmlAppContainer, HtmlAudioElement);
@@ -2320,19 +2406,26 @@ const HtmlAppContainerOnclick = function (e) {
             //SELECTED
             AudioSelectedIdx = -1;
             HtmlAppPanel.setAttribute("data-display", "0");
-        } else if (AudioSelectedIdx !== -1) {
+        } else if (AudioSelectedIdx - 1 > -1) {
+            AudioSelectedIdx -= 1;
             console.info({AudioSelectedIdx});
             const audioSelected = AudioList.get(AudioSelectedIdx);
             //Throw ERROR
             assert(audioSelected !== undefined);
             updateHtmlPanelProbability(audioSelected.events);
         }
+        if (AudioList.len !== 0) {
+            updateHtmlAudioProbability();
+        }
 
-        //updateHtmlAudioProbability();
 
         //defaults
         HtmlAudioElement.setAttribute("data-playing", "0");
         HtmlAudioElement.setAttribute("data-selected", "0");
+
+        if (AudioList.len < 2) {
+            HtmlPControls.setAttribute("data-scroll", "0");
+        }
 
         clearTimeout(timeoutFree)
         timeoutFree = setTimeout(timeoutFreeFn,FREE_TIME);
@@ -2431,10 +2524,6 @@ const HtmlAppPanelOnclick = function (e) {
         AudioSelectedIdx = -1;
 
     } else if ("prev" === target.name) {
-        if (AudioList.len < 2) {
-            target.parentElement.setAttribute("data-prev", "0");
-            return;
-        }
         HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "0");
         if (AudioSelectedIdx < 1) {
             AudioSelectedIdx = AudioList.len - 1;
@@ -2446,10 +2535,6 @@ const HtmlAppPanelOnclick = function (e) {
         HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "1");
         changeHtmlAppPanel(audioState);
     } else if ("next" === target.name) {
-        if (AudioList.len < 2) {
-            target.parentElement.setAttribute("data-next", "0");
-            return;
-        }
         HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "0");
         if (AudioSelectedIdx === AudioList.len - 1) {
             AudioSelectedIdx = 0;
@@ -2704,6 +2789,12 @@ const openApp = function () {
     HtmlAppPanel.addEventListener("input", HtmlAppPanelOninput, false);
     HtmlAppPanel.addEventListener("click", HtmlAppPanelOnclick, false);
     HtmlPVolume.addEventListener("wheel", HtmlVolumeOnwheel, false);
+
+    const prefersReduceMotion = window.matchMedia("(prefers-reduced-motion)");
+    reduceMotion = prefersReduceMotion.matches;
+    prefersReduceMotion.addEventListener("change", function (e) {
+        reduceMotion = e.matches;
+    });
 };
 
 const main = function () {
@@ -2726,9 +2817,7 @@ const main = function () {
         HtmlPresOpen.addEventListener("click", HtmlPresOpenOnclick, EVENT_CO);
         document.body.addEventListener("keydown", initBodyOnkeydown, true);
     }
-
     switchTheme();
     HtmlThemeSwitcher.addEventListener("click", switchTheme, true);
-
 };
 main();

@@ -9,10 +9,10 @@ and open it on any browser. That's all, Yey!!
 
 ## To Do:
 
-* [ ] Light Theme palette
+* [x] Light Theme palette
 
 * [x] Adds the change AudioEvent
-* [ ] Adds the audio visualization
+* [x] Adds the audio visualization
 
 * [ ] Implement the FadeIn and Fadeout on the Play and Pause actions
 * [ ] Use the localstorage to save the configuration
