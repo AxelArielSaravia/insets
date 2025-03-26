@@ -5,6 +5,8 @@ import (
     "html/template"
     "slices"
     "os"
+    "os/exec"
+    "errors"
 )
 
 const PROD_HREF = "./";
@@ -102,6 +104,15 @@ func main() {
         fmt.Fprint(os.Stderr, "Truncate", err)
         os.Exit(1)
     }
+    if (production) {
+        cmd := exec.Command("bun build ./src/script.js --outdir ./ --minify-whitespace")
+        if errors.Is(cmd.Err, exec.ErrDot) {
+            cmd.Err = nil
+        }
+        if err := cmd.Run(); err != nil {
+            fmt.Fprint(os.Stderr, "cmd.Run ", err);
+        }
+    }
 
     var tmpl *template.Template = nil
     for _, b := range builders {
@@ -121,7 +132,7 @@ func main() {
 
     err = tmpl.Execute(fd, htmldata)
     if err != nil {
-        fmt.Fprintln(os.Stderr, "template Execute", err)
+        fmt.Fprintln(os.Stderr, "template Execute ", err)
         os.Exit(1)
     }
 }
