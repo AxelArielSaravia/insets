@@ -104,6 +104,8 @@ const SelectAnimation = {
 };
 let reduceMotion = false;
 
+const Reader = new FileReader();
+
 const STORAGE_CREP_DISABLE = "inset.crep.disabled";
 const STORAGE_CRSP_DISABLE = "inset.crsp.disabled";
 const STORAGE_DELAY_DISABLE = "inset.d.disabled";
@@ -752,7 +754,6 @@ const audioRandomizeConnections = function (audio) {
         let x = getPanner(random(PannerYmin, PannerYmax)) / 10;
         let y = getPanner(random(PannerXmin, PannerXmax)) / 10;
         let z = -(random(PannerZmin, PannerZmax) / 10);
-        console.info({x,y,z})
         audio.panner.positionX.value = x;
         audio.panner.positionY.value = y;
         audio.panner.positionY.value = z;
@@ -790,7 +791,6 @@ const audioRandomizeConnections = function (audio) {
         }
         let freq = getFilterFreq(random(FilterFreqmin, FilterFreqmax));
 
-        console.info({type, freq, q});
 
         audio.filter.frequency.value = freq;
         audio.filter.type = type;
@@ -804,7 +804,6 @@ const audioRandomizeConnections = function (audio) {
             DelayFeedbackmin,
             DelayFeedbackmax
         )) / 100;
-        console.info({delaytime, feedback});
         audio.delay.delayTime.setValueAtTime(
             delaytime,
             context.currentTime + delaytime
@@ -822,7 +821,6 @@ const audioPlay = function (audio) {
         let pbrate = getPlaybackRate(
             random(PbRatemin, PbRatemax)
         );
-        console.info({pbrate});
         audio.html.playbackRate = pbrate;
     } else {
         audio.html.playbackRate = 1;
@@ -862,7 +860,6 @@ const audioPlay = function (audio) {
         audio.startPoint = rsp;
         audio.endPoint = rep;
         audio.html._endPoint = rep;
-        console.info({rsp, rep});
     }
     audio.html.currentTime = audio.startPoint;
 
@@ -1074,7 +1071,6 @@ const ZombieAudioOncanplaythrough = function (e) {
     HtmlAppContainer.appendChild(HtmlAudioElement);
 
     if (AudioSelectedIdx !== -1) {
-        console.info({AudioSelectedIdx});
         let audioSelected = AudioList.get(AudioSelectedIdx);
         //Throw Error
         assert(audioSelected !== undefined);
@@ -1404,7 +1400,7 @@ const randomSetSelection = function () {
         return false;
     }
     const cardinal = selectCardinal(SetEvents);
-    console.info("Cardinal", cardinal);
+    console.info("Cardinal:", cardinal);
 
     if (cardinal <= 0) {
         return false;
@@ -1436,7 +1432,7 @@ const randomExecution = function (id) {
     if (Started && StartedId === id) {
         const interval = random(TimeIntervalmin, TimeIntervalmax) * 100;
         console.info("Next execution:", interval);
-        console.info("AudioList", AudioList);
+        console.info("AudioList:", AudioList);
         if (randomSetSelection()) {
             let end = 0;
             if (SelectedAudios.all) {
@@ -1627,10 +1623,11 @@ const HtmlAppConfigOnclick = function (e) {
     const target = e.target;
     if ("theme-switcher" === target.name) {
         switchTheme();
+
     } else if ("import" === target.name) {
-        console.info("IMPORT");
+        target.value = "";
+
     }else if ("export" === target.name) {
-        console.info("EXPORT");
         let encodedJSON = "data:application/json;charset=utf-8,%7B";
         let i = 0;
         let key = "";
@@ -1647,6 +1644,7 @@ const HtmlAppConfigOnclick = function (e) {
             i += 1;
         }
         target.href = encodedJSON;
+
     } else if ("set-reset" === target.name) {
         SetEvents.zeros = 0;
         SetEvents.max = SetEvents.cap - 1;
@@ -1668,11 +1666,12 @@ const HtmlAppConfigOnclick = function (e) {
             );
         }
         HtmlCMaxElements.textContent = String(SetEvents.max);
+
     } else if ("set-left" === target.name) {
         const HtmlSet = target.parentElement.parentElement;
         if (1 === SetEvents.sum) {
             //TODO: notification, must be at least 1 event
-            console.info("MUST BE AT LEAST 1 EVENT");
+            console.warn("MUST BE AT LEAST 1 EVENT");
             return;
         }
         let i = getHtmlChildIndex(HtmlCSets, HtmlSet);
@@ -2088,11 +2087,18 @@ const HtmlAppConfigOnclick = function (e) {
     }
 };
 
+
 /**
  * @type{(e: InputEvent) => undefined}*/
 const HtmlAppConfigOninput = function (e) {
     const target = e.target;
-    if ("elements-checkbox" === target.name) {
+    if ("import" === target.name) {
+        if (target.files?.[0] === undefined) {
+            return;
+        }
+        Reader.readAsText(target.files[0]);
+
+    } else if ("elements-checkbox" === target.name) {
         console.info("elements-checkbox",{target})
         if (HtmlCSetDetails.getAttribute("data-elements") === "0") {
             HtmlCSetDetails.setAttribute("data-elements", "1");
@@ -2553,19 +2559,16 @@ const HtmlAppContainerOnclick = function (e) {
                 HtmlAppPanel.setAttribute("data-playing", "1");
             }
             audioAction(i, "play");
-            console.info("play: audio #",i);
         } else {
             HtmlAudioElement.setAttribute("data-playing", "0");
             if (i === AudioSelectedIdx) {
                 HtmlAppPanel.setAttribute("data-playing", "0");
             }
             audioAction(i, "pause");
-            console.info("pause: audio #",i);
         }
     } else if ("remove" === name) {
         const HtmlAudioElement = target.parentElement;
         let i = getHtmlChildIndex(HtmlAppContainer, HtmlAudioElement);
-        console.info("remove: audio #",i);
 
         audioAction(i, "remove");
         HtmlAudioZombies.appendChild(HtmlAudioElement);
@@ -2590,7 +2593,6 @@ const HtmlAppContainerOnclick = function (e) {
             HtmlAppPanel.setAttribute("data-display", "0");
         } else if (AudioSelectedIdx - 1 > -1) {
             AudioSelectedIdx -= 1;
-            console.info({AudioSelectedIdx});
             const audioSelected = AudioList.get(AudioSelectedIdx);
             //Throw ERROR
             assert(audioSelected !== undefined);
@@ -2626,7 +2628,6 @@ const HtmlAppContainerOnclick = function (e) {
             assert(i < AudioList.len, "ERROR: the index is out of AudioList");
 
             if (AudioSelectedIdx !== -1) {
-                console.info({AudioSelectedIdx});
                 //SOME TIMES THROW ERROR
                 HtmlAppContainer.children[AudioSelectedIdx].setAttribute(
                     "data-selected",
@@ -2639,7 +2640,6 @@ const HtmlAppContainerOnclick = function (e) {
             //SELECTED
             AudioSelectedIdx = i;
 
-            console.info({AudioSelectedIdx});
             changeHtmlAppPanel(AudioList.get(i));
         } else {
             HTMLAudioElement.setAttribute("data-selected", "0");
@@ -2691,12 +2691,10 @@ const HtmlAppPanelOnclick = function (e) {
             HtmlAudioElement.setAttribute("data-playing", "1");
             HtmlAppPanel.setAttribute("data-playing", "1");
             audioAction(AudioSelectedIdx, "play");
-            console.info("play: audio #", AudioSelectedIdx);
         } else {
             HtmlAudioElement.setAttribute("data-playing", "0");
             HtmlAppPanel.setAttribute("data-playing", "0");
             audioAction(AudioSelectedIdx, "pause");
-            console.info("pause: audio #",AudioSelectedIdx);
         }
     } else if ("close" === target.name) {
         const HTMLAudioElement = HtmlAppContainer.children[AudioSelectedIdx];
@@ -3048,6 +3046,24 @@ const setHtmlAppConfiguration = function () {
 
     HtmlCTimemaxUpdate(TimeIntervalmax);
     HtmlCTimeminUpdate(TimeIntervalmin);
+
+    for (let i = 0; i < AudioList.len; i += 1) {
+        const state = AudioList.get(i);
+        state.delayDisabled = DelayAreAllDisable;
+        state.filterDisabled = FilterAreAllDisable;
+        state.pannerDisabled = PannerAreAllDisable;
+        state.pbrateDisabled = PbRateAreAllDisable;
+        state.rspDisabled = CutRSPAreAllDisable;
+        state.repDisabled = CutREPAreAllDisable;
+    }
+    if (SelectedAudios !== -1) {
+        changeHtmlAppPanelEffect("delay", !DelayAreAllDisable);
+        changeHtmlAppPanelEffect("filter", !FilterAreAllDisable);
+        changeHtmlAppPanelEffect("panner", !PannerAreAllDisable);
+        changeHtmlAppPanelEffect("pbrate", !PbRateAreAllDisable);
+        changeHtmlAppPanelEffect("rsp", !CutRSPAreAllDisable);
+        changeHtmlAppPanelEffect("rep", !CutREPAreAllDisable);
+    }
 };
 
 /**@type{(appVersion: string) => undefined}*/
@@ -3064,7 +3080,21 @@ const localStorageInit = function (appVersion) {
             }
         }
     }
-    let t = s[STORAGE_DELAY_DISABLE];
+    let t = "";
+    t = s[STORAGE_CREP_DISABLE];
+    if (t === "0" || t === "1") {
+        CutREPAreAllDisable = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_CREP_DISABLE, String(Number(CutREPAreAllDisable)));
+    }
+    t = s[STORAGE_CRSP_DISABLE];
+    if (t === "0" || t === "1") {
+        CutRSPAreAllDisable = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_CRSP_DISABLE, String(Number(CutRSPAreAllDisable)));
+    }
+
+    t = s[STORAGE_DELAY_DISABLE];
     if (t === "0" || t === "1") {
         DelayAreAllDisable = Boolean(Number(t));
     } else {
@@ -3245,6 +3275,204 @@ const localStorageInit = function (appVersion) {
         s.setItem(STORAGE_TIME_MIN, String(TimeIntervalmin));
     }
 };
+const loadConfigFile = function () {
+    const text = Reader.result;
+    //can throw error
+    const json = JSON.parse(text);
+    let t = json[STORAGE_CRSP_DISABLE];
+    if (t === "0" || t === "1") {
+        localStorage.setItem(STORAGE_CRSP_DISABLE, t);
+        CutRSPAreAllDisable = Boolean(Number(t));
+    }
+    t = json[STORAGE_CREP_DISABLE];
+    if (t === "0" || t === "1") {
+        localStorage.setItem(STORAGE_CREP_DISABLE, t);
+        CutREPAreAllDisable = Boolean(Number(t));
+    }
+
+    t = json[STORAGE_DELAY_DISABLE];
+    if (t === "0" || t === "1") {
+        DelayAreAllDisable = Boolean(Number(t));
+        localStorage.setItem(STORAGE_DELAY_DISABLE, t);
+    }
+
+    let maxn = 0;
+    let minn = 0;
+    let maxs = json[STORAGE_DELAY_TIMEMAX];
+    let mins = json[STORAGE_DELAY_TIMEMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_TIMEMAX) {
+            DelayTimemax = maxn;
+            DelayTimemin = minn;
+            localStorage.setItem(STORAGE_DELAY_TIMEMAX, maxs);
+            localStorage.setItem(STORAGE_DELAY_TIMEMIN, mins);
+        }
+    }
+
+    maxs = json[STORAGE_DELAY_FEEDBACKMAX];
+    mins = json[STORAGE_DELAY_FEEDBACKMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_FEEDBACKMAX) {
+            DelayTimemax = maxn;
+            DelayTimemin = minn;
+            localStorage.setItem(STORAGE_DELAY_FEEDBACKMAX, maxs);
+            localStorage.setItem(STORAGE_DELAY_FEEDBACKMIN, mins);
+        }
+    }
+
+    maxs = json[STORAGE_FADEIN];
+    if (maxs !== undefined) {
+        maxn = Number(maxs);
+        if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
+            FadeIn = maxn;
+            localStorage.setItem(STORAGE_FADEIN, maxs);
+        }
+    }
+
+    maxs = json[STORAGE_FADEOUT];
+    if (maxs !== undefined) {
+        maxn = Number(maxs);
+        if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
+            FadeOut = maxn;
+            localStorage.setItem(STORAGE_FADEOUT, maxs);
+        }
+    }
+
+    t = json[STORAGE_FILTER_DISABLE];
+    if (t === "0" || t === "1") {
+        FilterAreAllDisable = Boolean(Number(t));
+        localStorage.setItem(STORAGE_FILTER_DISABLE, t);
+    }
+
+    maxs = json[STORAGE_FILTER_FREQMAX];
+    mins = json[STORAGE_FILTER_FREQMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_FREQMAX) {
+            FilterFreqmax = maxn;
+            FilterFreqmin = minn;
+            localStorage.setItem(STORAGE_FILTER_FREQMAX, maxs);
+            localStorage.setItem(STORAGE_FILTER_FREQMIN, mins);
+        }
+    }
+
+    maxs = json[STORAGE_FILTER_QMAX];
+    mins = json[STORAGE_FILTER_QMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_QMAX) {
+            FilterQmax = maxn;
+            FilterQmin = minn;
+            localStorage.setItem(STORAGE_FILTER_QMAX, maxs);
+            localStorage.setItem(STORAGE_FILTER_QMIN, mins);
+        }
+    }
+    t = json[STORAGE_FILTER_BANDPASS];
+    if (t === "0" || t === "1") {
+        FilterBandpass = Boolean(Number(t));
+        localStorage.setItem(STORAGE_FILTER_BANDPASS, t);
+    }
+    t = json[STORAGE_FILTER_HIGHPASS];
+    if (t === "0" || t === "1") {
+        FilterHighpass = Boolean(Number(t));
+        localStorage.setItem(STORAGE_FILTER_HIGHPASS, t);
+    }
+    t = json[STORAGE_FILTER_LOWPASS];
+    if (t === "0" || t === "1") {
+        FilterLowpass = Boolean(Number(t));
+        localStorage.setItem(STORAGE_FILTER_LOWPASS, t);
+    }
+    t = json[STORAGE_FILTER_NOTCH];
+    if (t === "0" || t === "1") {
+        FilterNotch = Boolean(Number(t));
+        localStorage.setItem(STORAGE_FILTER_NOTCH, t);
+    }
+
+    t = json[STORAGE_PANNER_DISABLE];
+    if (t === "0" || t === "1") {
+        PannerAreAllDisable = Boolean(Number(t));
+        localStorage.setItem(STORAGE_PANNER_DISABLE, t);
+    }
+    maxs = json[STORAGE_PANNER_XMAX];
+    mins = json[STORAGE_PANNER_XMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+            PannerXmax = maxn;
+            PannerXmin = minn;
+            localStorage.setItem(STORAGE_PANNER_XMAX, maxs);
+            localStorage.setItem(STORAGE_PANNER_XMIN, mins);
+        }
+    }
+
+    maxs = json[STORAGE_PANNER_YMAX];
+    mins = json[STORAGE_PANNER_YMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+            PannerYmax = maxn;
+            PannerYmin = minn;
+            localStorage.setItem(STORAGE_PANNER_YMAX, maxs);
+            localStorage.setItem(STORAGE_PANNER_YMIN, mins);
+        }
+    }
+
+    maxs = json[STORAGE_PANNER_ZMAX];
+    mins = json[STORAGE_PANNER_ZMIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_ZMAX) {
+            PannerZmax = maxn;
+            PannerZmin = minn;
+            localStorage.setItem(STORAGE_PANNER_ZMAX, maxs);
+            localStorage.setItem(STORAGE_PANNER_ZMIN, mins);
+        }
+    }
+
+    t = json[STORAGE_PBRATE_DISABLE];
+    if (t === "0" || t === "1") {
+        PbRateAreAllDisable = Boolean(Number(t));
+        localStorage.setItem(STORAGE_PBRATE_DISABLE, t);
+    }
+    maxs = json[STORAGE_PBRATE_MAX];
+    mins = json[STORAGE_PBRATE_MIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+            PbRatemax = maxn;
+            PbRatemin = minn;
+            localStorage.setItem(STORAGE_PBRATE_MAX, maxs);
+            localStorage.setItem(STORAGE_PBRATE_MIN, mins);
+        }
+    }
+    maxs = json[STORAGE_TIME_MAX];
+    mins = json[STORAGE_TIME_MIN];
+    if (maxs !== undefined && mins !== undefined) {
+        maxn = Number(maxs);
+        minn = Number(mins);
+        if (LIMIT_TIMEINTERVAL_MIN <= mins
+            && minn <= maxn
+            && maxn <= LIMIT_TIMEINTERVAL_MAX
+        ) {
+            TimeIntervalmax = maxn;
+            TimeIntervalmin = minn;
+            localStorage.setItem(STORAGE_TIME_MAX, maxs);
+            localStorage.setItem(STORAGE_TIME_MIN, mins);
+        }
+    }
+
+    setHtmlAppConfiguration();
+};
 
 const openApp = function () {
     setHtmlAppConfiguration();
@@ -3288,6 +3516,8 @@ const openApp = function () {
     prefersReduceMotion.addEventListener("change", function (e) {
         reduceMotion = e.matches;
     });
+
+    Reader.addEventListener("load", loadConfigFile, true);
 };
 
 const main = function () {
