@@ -7,6 +7,14 @@ over effect parameters and generative probabilities.
 It is just a file!! Download or copy the index.html file,
 and open it on any browser. That's all, Yey!!
 
+
+## Build Dependencies
+- [Go compiler >= 1.23](https://go.dev/)
+- Minifiers:
+    * [Bun](https://bun.sh/)
+    * [tdewolff/minify](https://github.com/tdewolff/minify)
+
+
 ## To Do before version 0.1.0:
 
 * [x] Light Theme palette
