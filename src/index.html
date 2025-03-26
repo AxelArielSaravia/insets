@@ -739,7 +739,15 @@
                 <section id="app-config" class="configuration" data-show="0">
                     <menu>
                         <li>
-                            <button name="import" class="button-icon-text">
+                            <label class="button button-icon-text"
+                                title="Import JSON configuration"
+                            >
+                                <input
+                                    name="import"
+                                    type="file"
+                                    accept="application/json"
+                                    class="hidde-interactive"
+                                >
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                     width="24" height="24"
                                     viewBox="0 0 24 24"
@@ -755,10 +763,16 @@
                                     <line x1="12" x2="12" y1="15" y2="3"/>
                                 </svg>
                                 <span>import</span>
-                            </button>
+                            </label>
                         </li>
                         <li>
-                            <button name="export" class="button-icon-text">
+                            <a name="export"
+                                class="button button-icon-text"
+                                title="Export JSON configuration"
+                                href=""
+                                download="insets_config.json"
+                                type="application/json"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                     width="24" height="24"
                                     viewBox="0 0 24 24"
@@ -774,7 +788,7 @@
                                     <line x1="12" x2="12" y1="3" y2="15"/>
                                 </svg>
                                 <span>export</span>
-                            </button>
+                            </a>
                         </li>
                         <li>
                             <button type="button"

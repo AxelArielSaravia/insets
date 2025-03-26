@@ -60,22 +60,6 @@ const CARDINAL_MAX = 15;
 const EVENTS_MAX_VALUE = 80;
 const EVENTS_MIN_VALUE = 0;
 
-const AlertAnimation = {
-    keyframes: [{color: "red"}],
-    timing: {
-        duration: 300,
-        iterations: 3,
-    }
-};
-const SelectAnimation = {
-    keyframes: [{"--color-audio-text": "var(--color-audio-select)"}],
-    timing: {
-        duration: 800,
-        iterations: 1,
-        delay: 0
-    }
-};
-
 const SetEvents = {
     cap: CARDINAL_MAX + 1,
     max: CARDINAL_MAX,
@@ -103,7 +87,90 @@ const startedIdNext = function () {
     return StartedId;
 };
 
+const AlertAnimation = {
+    keyframes: [{color: "red"}],
+    timing: {
+        duration: 300,
+        iterations: 3,
+    }
+};
+const SelectAnimation = {
+    keyframes: [{"--color-audio-text": "var(--color-audio-select)"}],
+    timing: {
+        duration: 800,
+        iterations: 1,
+        delay: 0
+    }
+};
 let reduceMotion = false;
+
+const STORAGE_CREP_DISABLE = "inset.crep.disabled";
+const STORAGE_CRSP_DISABLE = "inset.crsp.disabled";
+const STORAGE_DELAY_DISABLE = "inset.d.disabled";
+const STORAGE_DELAY_TIMEMAX = "inset.d.tmax";
+const STORAGE_DELAY_TIMEMIN = "inset.d.tmin";
+const STORAGE_DELAY_FEEDBACKMAX = "inset.d.fmax";
+const STORAGE_DELAY_FEEDBACKMIN = "inset.d.fmin";
+const STORAGE_FADEOUT = "inset.fout";
+const STORAGE_FADEIN = "inset.fin";
+const STORAGE_FILTER_DISABLE = "inset.f.disabled";
+const STORAGE_FILTER_FREQMAX = "inset.f.fmax";
+const STORAGE_FILTER_FREQMIN = "inset.f.fmin";
+const STORAGE_FILTER_QMAX = "inset.f.qmax";
+const STORAGE_FILTER_QMIN = "inset.f.qmin";
+const STORAGE_FILTER_BANDPASS = "inset.f.bp";
+const STORAGE_FILTER_HIGHPASS = "inset.f.hp";
+const STORAGE_FILTER_LOWPASS = "inset.f.lp";
+const STORAGE_FILTER_NOTCH = "inset.f.nt";
+const STORAGE_PANNER_DISABLE = "inset.p.disabled";
+const STORAGE_PANNER_XMAX = "inset.p.xmax";
+const STORAGE_PANNER_XMIN = "inset.p.xmin";
+const STORAGE_PANNER_YMAX = "inset.p.ymax";
+const STORAGE_PANNER_YMIN = "inset.p.ymin";
+const STORAGE_PANNER_ZMAX = "inset.p.zmax";
+const STORAGE_PANNER_ZMIN = "inset.p.zmin";
+const STORAGE_PBRATE_DISABLE = "inset.pbr.disabled";
+const STORAGE_PBRATE_MAX = "inset.pbr.max";
+const STORAGE_PBRATE_MIN = "inset.pbr.min";
+const STORAGE_THEME = "inset.theme";
+const STORAGE_TIME_MAX = "inset.t.max";
+const STORAGE_TIME_MIN = "inset.t.min";
+const STORAGE_VERSION = "inset.version";
+
+const StorageKeys = [
+    STORAGE_CREP_DISABLE,
+    STORAGE_CRSP_DISABLE,
+    STORAGE_DELAY_DISABLE,
+    STORAGE_DELAY_TIMEMAX,
+    STORAGE_DELAY_TIMEMIN,
+    STORAGE_DELAY_FEEDBACKMAX,
+    STORAGE_DELAY_FEEDBACKMIN,
+    STORAGE_FADEOUT,
+    STORAGE_FADEIN,
+    STORAGE_FILTER_DISABLE,
+    STORAGE_FILTER_FREQMAX,
+    STORAGE_FILTER_FREQMIN,
+    STORAGE_FILTER_QMAX,
+    STORAGE_FILTER_QMIN,
+    STORAGE_FILTER_BANDPASS,
+    STORAGE_FILTER_HIGHPASS,
+    STORAGE_FILTER_LOWPASS,
+    STORAGE_FILTER_NOTCH,
+    STORAGE_PANNER_DISABLE,
+    STORAGE_PANNER_XMAX,
+    STORAGE_PANNER_XMIN,
+    STORAGE_PANNER_YMAX,
+    STORAGE_PANNER_YMIN,
+    STORAGE_PANNER_ZMAX,
+    STORAGE_PANNER_ZMIN,
+    STORAGE_PBRATE_DISABLE,
+    STORAGE_PBRATE_MAX,
+    STORAGE_PBRATE_MIN,
+    STORAGE_THEME,
+    STORAGE_TIME_MAX,
+    STORAGE_TIME_MIN,
+    STORAGE_VERSION
+];
 
 let DelayAreAllDisable = DEFAULT_AREALLDISABLE;
 let DelayTimemax = DEFAULT_DELAY_TIMEMAX;
@@ -1431,7 +1498,7 @@ const switchTheme = function () {
     } else if (theme === "light") {
         theme = "dark";
     } else { //default
-        theme = localStorage.getItem("theme");
+        theme = localStorage.getItem(STORAGE_THEME);
         if (theme !== "dark" && theme !== "light") {
             if (window.matchMedia
                 && window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -1443,7 +1510,7 @@ const switchTheme = function () {
         }
     }
     document.firstElementChild.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    localStorage.setItem(STORAGE_THEME, theme);
 };
 
 /**@type{(events: number) => undefined}*/
@@ -1560,6 +1627,26 @@ const HtmlAppConfigOnclick = function (e) {
     const target = e.target;
     if ("theme-switcher" === target.name) {
         switchTheme();
+    } else if ("import" === target.name) {
+        console.info("IMPORT");
+    }else if ("export" === target.name) {
+        console.info("EXPORT");
+        let encodedJSON = "data:application/json;charset=utf-8,%7B";
+        let i = 0;
+        let key = "";
+        for (;;) {
+            if (i === StorageKeys.length) {
+                encodedJSON += "%7D";
+                break;
+            }
+            key = StorageKeys[i];
+            encodedJSON += `%22${key}%22%3A%22${localStorage.getItem(key)}%22`;
+            if (i < StorageKeys.length -1) {
+                encodedJSON += "%2C";
+            }
+            i += 1;
+        }
+        target.href = encodedJSON;
     } else if ("set-reset" === target.name) {
         SetEvents.zeros = 0;
         SetEvents.max = SetEvents.cap - 1;
@@ -1629,6 +1716,8 @@ const HtmlAppConfigOnclick = function (e) {
         TimeIntervalmin = DEFAULT_TIMEINTERVAL_MIN;
         TimeTemporalmax = DEFAULT_TIMEINTERVAL_MAX;
         TimeTemporalmin = DEFAULT_TIMEINTERVAL_MIN;
+        localStorage.setItem(STORAGE_TIME_MIN, String(DEFAULT_TIMEINTERVAL_MIN));
+        localStorage.setItem(STORAGE_TIME_MAX, String(DEFAULT_TIMEINTERVAL_MAX));
         HtmlCTimemaxUpdate(DEFAULT_TIMEINTERVAL_MAX);
         HtmlCTimeminUpdate(DEFAULT_TIMEINTERVAL_MIN);
         HtmlCTimeContainer.setAttribute("data-changed", "0");
@@ -1645,6 +1734,8 @@ const HtmlAppConfigOnclick = function (e) {
         TimeIntervalmin = TimeTemporalmin;
         TimeIntervalmax = TimeTemporalmax;
 
+        localStorage.setItem(STORAGE_TIME_MIN, String(TimeIntervalmin));
+        localStorage.setItem(STORAGE_TIME_MAX, String(TimeIntervalmax));
         HtmlCTimeContainer.setAttribute("data-changed", "0");
 
     } else if ("time-max-mm-up" === target.name) {
@@ -1840,6 +1931,8 @@ const HtmlAppConfigOnclick = function (e) {
         HtmlCFadeout.lastElementChild.children["value"].textContent = String(
             getFade(DEFAULT_FADEOUT)
         );
+        localStorage.setItem(STORAGE_FADEIN, String(DEFAULT_FADEIN));
+        localStorage.setItem(STORAGE_FADEOUT, String(DEFAULT_FADEOUT));
         FadeIn = DEFAULT_FADEIN;
         FadeOut = DEFAULT_FADEOUT;
 
@@ -1868,6 +1961,11 @@ const HtmlAppConfigOnclick = function (e) {
         HtmlCDelayFeedbackmax.lastElementChild.children["value"].textContent = String(
             getDelayFeedback(DEFAULT_DELAY_FEEDBACKMAX)
         );
+
+        localStorage.setItem(STORAGE_DELAY_TIMEMAX, String(DEFAULT_DELAY_TIMEMAX));
+        localStorage.setItem(STORAGE_DELAY_TIMEMIN, String(DEFAULT_DELAY_TIMEMIN));
+        localStorage.setItem(STORAGE_DELAY_FEEDBACKMAX, String(DEFAULT_DELAY_FEEDBACKMAX));
+        localStorage.setItem(STORAGE_DELAY_FEEDBACKMIN, String(DEFAULT_DELAY_FEEDBACKMIN));
         DelayTimemax = DEFAULT_DELAY_TIMEMAX;
         DelayTimemin = DEFAULT_DELAY_TIMEMIN;
         DelayFeedbackmax = DEFAULT_DELAY_FEEDBACKMAX;
@@ -1902,6 +2000,23 @@ const HtmlAppConfigOnclick = function (e) {
         elements["filter-lowpass"].checked = DEFAULT_FILTER_LOWPASS;
         elements["filter-notch"].checked = DEFAULT_FILTER_NOTCH;
 
+        localStorage.setItem(STORAGE_FILTER_FREQMAX, String(DEFAULT_FILTER_FREQMAX));
+        localStorage.setItem(STORAGE_FILTER_FREQMIN, String(DEFAULT_FILTER_FREQMIN));
+        localStorage.setItem(STORAGE_FILTER_QMAX, String(DEFAULT_FILTER_QMAX));
+        localStorage.setItem(STORAGE_FILTER_QMIN, String(DEFAULT_FILTER_QMIN));
+        localStorage.setItem(
+            STORAGE_FILTER_BANDPASS,
+            String(Number(DEFAULT_FILTER_BANDPASS))
+        );
+        localStorage.setItem(
+            STORAGE_FILTER_HIGHPASS,
+            String(Number(DEFAULT_FILTER_HIGHPASS))
+        );
+        localStorage.setItem(
+            STORAGE_FILTER_LOWPASS,
+            String(Number(DEFAULT_FILTER_LOWPASS))
+        );
+        localStorage.setItem(STORAGE_FILTER_NOTCH, DEFAULT_FILTER_NOTCH);
         FilterFreqmax = DEFAULT_FILTER_FREQMAX;
         FilterFreqmin = DEFAULT_FILTER_FREQMIN;
         FilterQmax = DEFAULT_FILTER_QMAX;
@@ -1942,6 +2057,12 @@ const HtmlAppConfigOnclick = function (e) {
         HtmlCPannerZmax.lastElementChild.children["value"].textContent = String(
             DEFAULT_PANNER_ZMAX
         );
+        localStorage.setItem(STORAGE_PANNER_XMIN, String(DEFAULT_PANNER_XMIN));
+        localStorage.setItem(STORAGE_PANNER_XMAX, String(DEFAULT_PANNER_XMAX));
+        localStorage.setItem(STORAGE_PANNER_YMIN, String(DEFAULT_PANNER_YMIN));
+        localStorage.setItem(STORAGE_PANNER_YMAX, String(DEFAULT_PANNER_YMAX));
+        localStorage.setItem(STORAGE_PANNER_ZMIN, String(DEFAULT_PANNER_ZMIN));
+        localStorage.setItem(STORAGE_PANNER_ZMAX, String(DEFAULT_PANNER_ZMAX));
         PannerXmax = DEFAULT_PANNER_XMAX;
         PannerXmin = DEFAULT_PANNER_XMIN;
         PannerYmax = DEFAULT_PANNER_YMAX;
@@ -1960,6 +2081,8 @@ const HtmlAppConfigOnclick = function (e) {
         HtmlCPbrateMax.lastElementChild.children["value"].textContent = (
             getPlaybackRate(DEFAULT_PBRATE_MAX).toFixed(2)
         );
+        localStorage.setItem(STORAGE_PBRATE_MIN, String(DEFAULT_PBRATE_MIN));
+        localStorage.setItem(STORAGE_PBRATE_MAX, String(DEFAULT_PBRATE_MAX));
         PbRatemin = DEFAULT_PBRATE_MIN;
         PbRatemax = DEFAULT_PBRATE_MAX;
     }
@@ -2025,19 +2148,25 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCFadein.lastElementChild.children["value"].textContent = String(
             getFade(target.valueAsNumber)
         );
+        localStorage.setItem(STORAGE_FADEIN, FadeIn);
 
     } else if ("fadeout" === target.name) {
         FadeOut = target.valueAsNumber;
         HtmlCFadeout.lastElementChild.children["value"].textContent = String(
             getFade(target.valueAsNumber)
         );
+        localStorage.setItem(STORAGE_FADEIN, FadeOut);
 
     } else if ("delay-da" === target.name) {
         DelayAreAllDisable = target.checked;
+        localStorage.setItem(
+            STORAGE_DELAY_DISABLE,
+            String(Number(DelayAreAllDisable))
+        );
+
         if (AudioList.len < 0) {
             return;
         }
-
         for (let i = 0; i < AudioList.len; i += 1) {
             const state = AudioList.get(i);
             state.delayDisabled = target.checked;
@@ -2054,6 +2183,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCDelayTimemin.lastElementChild.children["value"].textContent = (
             getDelayTime(DelayTimemin).toFixed(1)
         );
+        localStorage.setItem(STORAGE_DELAY_TIMEMIN, String(DelayTimemin));
 
     } else if ("delay-timemax" === target.name) {
         if (DelayTimemin > LIMIT_DELAY_TIMEMAX - target.valueAsNumber) {
@@ -2063,6 +2193,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCDelayTimemax.lastElementChild.children["value"].textContent = (
             getDelayTime(DelayTimemax).toFixed(1)
         );
+        localStorage.setItem(STORAGE_DELAY_TIMEMAX, String(DelayTimemax));
 
     } else if ("delay-feedbackmin" === target.name) {
         if (target.valueAsNumber > DelayFeedbackmax) {
@@ -2072,6 +2203,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCDelayFeedbackmin.lastElementChild.children["value"].textContent = String(
             getDelayFeedback(DelayFeedbackmin)
         );
+        localStorage.setItem(STORAGE_DELAY_FEEDBACKMIN, String(DelayFeedbackmin));
 
     } else if ("delay-feedbackmax" === target.name) {
         if (DelayFeedbackmin > LIMIT_DELAY_FEEDBACKMAX - target.valueAsNumber) {
@@ -2081,9 +2213,14 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCDelayFeedbackmax.lastElementChild.children["value"].textContent = String(
             getDelayFeedback(DelayFeedbackmax)
         );
+        localStorage.setItem(STORAGE_DELAY_FEEDBACKMAX, String(DelayFeedbackmax));
 
     } else if ("filter-da" === target.name) {
         FilterAreAllDisable = target.checked;
+        localStorage.setItem(
+            STORAGE_FILTER_DISABLE,
+            String(Number(FilterAreAllDisable))
+        );
         if (AudioList.len < 0) {
             return;
         }
@@ -2103,6 +2240,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCFilterFreqmin.lastElementChild.children["value"].textContent = String(
             getFilterFreq(FilterFreqmin)
         );
+        localStorage.setItem(STORAGE_FILTER_FREQMIN, String(FilterFreqmin));
 
     } else if ("filter-freqmax" === target.name) {
         if (FilterFreqmin > LIMIT_FILTER_FREQMAX - target.valueAsNumber) {
@@ -2112,6 +2250,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCFilterFreqmax.lastElementChild.children["value"].textContent = String(
             getFilterFreq(FilterFreqmax)
         );
+        localStorage.setItem(STORAGE_FILTER_FREQMAX, String(FilterFreqmax));
 
     } else if ("filter-qmin" === target.name) {
         if (target.valueAsNumber > FilterQmax) {
@@ -2121,6 +2260,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCFilterQmin.lastElementChild.children["value"].textContent = String(
             getFilterQ(FilterQmin)
         );
+        localStorage.setItem(STORAGE_FILTER_QMIN, String(FilterQmin));
 
     } else if ("filter-qmax" === target.name) {
         if (FilterQmin > LIMIT_FILTER_QMAX - target.valueAsNumber) {
@@ -2130,6 +2270,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCFilterQmax.lastElementChild.children["value"].textContent = String(
             getFilterQ(FilterQmax)
         );
+        localStorage.setItem(STORAGE_FILTER_QMAX, String(FilterQmax));
 
     } else if ("filter-highpass" === target.name) {
         if (FilterHighpass
@@ -2140,6 +2281,10 @@ const HtmlAppConfigOninput = function (e) {
             target.checked = true;
         }
         FilterHighpass = target.checked;
+        localStorage.setItem(
+            STORAGE_FILTER_HIGHPASS,
+            String(Number(FilterHighpass))
+        );
 
     } else if ("filter-lowpass" === target.name) {
         if (FilterLowpass
@@ -2150,6 +2295,10 @@ const HtmlAppConfigOninput = function (e) {
             target.checked = true;
         }
         FilterLowpass = target.checked;
+        localStorage.setItem(
+            STORAGE_FILTER_LOWPASS,
+            String(Number(FilterLowpass))
+        );
 
     } else if ("filter-bandpass" === target.name) {
         if (FilterBandpass
@@ -2160,6 +2309,10 @@ const HtmlAppConfigOninput = function (e) {
             target.checked = true;
         }
         FilterBandpass = target.checked;
+        localStorage.setItem(
+            STORAGE_FILTER_BANDPASS,
+            String(Number(FilterBandpass))
+        );
 
     } else if ("filter-notch" === target.name) {
         if (FilterNotch
@@ -2170,9 +2323,17 @@ const HtmlAppConfigOninput = function (e) {
             target.checked = true;
         }
         FilterNotch = target.checked;
+        localStorage.setItem(
+            STORAGE_FILTER_NOTCH,
+            String(Number(FilterNotch))
+        );
 
     } else if ("panner-da" === target.name) {
         PannerAreAllDisable = target.checked;
+        localStorage.setItem(
+            STORAGE_PANNER_DISABLE,
+            String(Number(PannerAreAllDisable))
+        );
         if (AudioList.len < 0) {
             return;
         }
@@ -2192,6 +2353,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCPannerXmin.lastElementChild.children["value"].textContent = String(
             getPanner(PannerXmin)
         );
+        localStorage.setItem(STORAGE_PANNER_XMIN, String(PannerXmin));
 
     } else if ("panner-xmax" === target.name) {
         if (PannerXmin > LIMIT_PANNER_MAX - target.valueAsNumber) {
@@ -2201,6 +2363,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCPannerXmax.lastElementChild.children["value"].textContent = String(
             getPanner(PannerXmax)
         );
+        localStorage.setItem(STORAGE_PANNER_XMAX, String(PannerXmax));
 
     } else if ("panner-ymin" === target.name) {
         if (target.valueAsNumber > PannerYmax) {
@@ -2210,6 +2373,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCPannerYmin.lastElementChild.children["value"].textContent = String(
             getPanner(PannerYmin)
         );
+        localStorage.setItem(STORAGE_PANNER_YMIN, String(PannerYmin));
 
     } else if ("panner-ymax" === target.name) {
         if (PannerYmin > LIMIT_PANNER_MAX - target.valueAsNumber) {
@@ -2219,6 +2383,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCPannerYmax.lastElementChild.children["value"].textContent = String(
             getPanner(PannerYmax)
         );
+        localStorage.setItem(STORAGE_PANNER_YMAX, String(PannerYmax));
 
     } else if ("panner-zmin" === target.name) {
         if (target.valueAsNumber > PannerZmax) {
@@ -2226,6 +2391,7 @@ const HtmlAppConfigOninput = function (e) {
         }
         PannerZmin = target.valueAsNumber;
         HtmlCPannerZmin.lastElementChild.children["value"].textContent = String(PannerZmin);
+        localStorage.setItem(STORAGE_PANNER_ZMIN, String(PannerZmin));
 
     } else if ("panner-zmax" === target.name) {
         if (PannerZmin > LIMIT_PANNER_ZMAX - target.valueAsNumber) {
@@ -2233,9 +2399,15 @@ const HtmlAppConfigOninput = function (e) {
         }
         PannerZmax = LIMIT_PANNER_ZMAX - target.valueAsNumber;
         HtmlCPannerZmax.lastElementChild.children["value"].textContent = String(PannerZmax);
+        localStorage.setItem(STORAGE_PANNER_ZMAX, String(PannerZmax));
+
 
     } else if ("pbrate-da" === target.name) {
         PbRateAreAllDisable = target.checked;
+        localStorage.setItem(
+            STORAGE_PBRATE_DISABLE,
+            String(Number(PbRateAreAllDisable))
+        );
         if (AudioList.len < 0) {
             return;
         }
@@ -2255,6 +2427,7 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCPbrateMin.lastElementChild.children["value"].textContent = (
             getPlaybackRate(PbRatemin).toFixed(2)
         );
+        localStorage.setItem(STORAGE_PBRATE_MIN, String(PbRatemin));
 
     } else if ("pbrate-max" === target.name) {
         if (PbRatemin > LIMIT_PBRATE_MAX - target.valueAsNumber) {
@@ -2264,9 +2437,14 @@ const HtmlAppConfigOninput = function (e) {
         HtmlCPbrateMax.lastElementChild.children["value"].textContent = (
             getPlaybackRate(PbRatemax).toFixed(2)
         );
+        localStorage.setItem(STORAGE_PBRATE_MAX, String(PbRatemax));
 
     } else if ("rsp-da" === target.name) {
         CutRSPAreAllDisable = target.checked;
+        localStorage.setItem(
+            STORAGE_CRSP_DISABLE,
+            String(Number(CutRSPAreAllDisable))
+        );
         if (AudioList.len < 0) {
             return;
         }
@@ -2280,6 +2458,10 @@ const HtmlAppConfigOninput = function (e) {
 
     } else if ("rep-da" === target.name) {
         CutREPAreAllDisable = target.checked;
+        localStorage.setItem(
+            STORAGE_CREP_DISABLE,
+            String(Number(CutREPAreAllDisable))
+        );
         if (AudioList.len < 0) {
             return;
         }
@@ -2754,8 +2936,319 @@ const HtmlVolumeOnwheel = function (e) {
     state.input.gain.value = state.volume / 10;
 };
 
+const setHtmlAppConfiguration = function () {
+    HtmlCDelayDA.checked = DelayAreAllDisable;
+    HtmlCDelayTimemin.children["delay-timemin"].valueAsNumber = DelayTimemin;
+    HtmlCDelayTimemin.lastElementChild.children["value"].textContent = (
+        getDelayTime(DelayTimemin).toFixed(1)
+    );
+    HtmlCDelayTimemax.children["delay-timemax"].valueAsNumber = (
+        LIMIT_DELAY_TIMEMAX - DelayTimemax
+    );
+    HtmlCDelayTimemax.lastElementChild.children["value"].textContent = (
+        getDelayTime(DelayTimemax).toFixed(1)
+    );
+    HtmlCDelayFeedbackmin.children["delay-feedbackmin"].valueAsNumber = (
+        DelayFeedbackmin
+    );
+    HtmlCDelayFeedbackmin.lastElementChild.children["value"].textContent = String(
+        getDelayFeedback(DelayFeedbackmin)
+    );
+    HtmlCDelayFeedbackmax.children["delay-feedbackmax"].valueAsNumber = (
+        LIMIT_DELAY_FEEDBACKMAX - DelayFeedbackmax
+    );
+    HtmlCDelayFeedbackmax.lastElementChild.children["value"].textContent = String(
+        getDelayFeedback(DelayFeedbackmax)
+    );
+
+    HtmlCFadein.firstElementChild.valueAsNumber = FadeIn;
+    HtmlCFadein.lastElementChild.children["value"].textContent = String(
+        getFade(FadeIn)
+    );
+    HtmlCFadeout.firstElementChild.valueAsNumber = FadeOut;
+    HtmlCFadeout.lastElementChild.children["value"].textContent = String(
+        getFade(FadeOut)
+    );
+
+    HtmlCFilterDA.checked = FilterAreAllDisable;
+    HtmlCFilterFreqmin.children["filter-freqmin"].valueAsNumber = (
+        FilterFreqmin
+    );
+    HtmlCFilterFreqmin.lastElementChild.children["value"].textContent = String(
+        getFilterFreq(FilterFreqmin)
+    );
+    HtmlCFilterFreqmax.children["filter-freqmax"].valueAsNumber = (
+        LIMIT_FILTER_FREQMAX - FilterFreqmax
+    );
+    HtmlCFilterFreqmax.lastElementChild.children["value"].textContent = String(
+        getFilterFreq(FilterFreqmax)
+    );
+    HtmlCFilterQmin.children["filter-qmin"].valueAsNumber = FilterQmin;
+    HtmlCFilterQmin.lastElementChild.children["value"].textContent = String(
+        getFilterQ(FilterQmin)
+    );
+    HtmlCFilterQmax.children["filter-qmax"].valueAsNumber = (
+        LIMIT_FILTER_QMAX - FilterQmax
+    );
+    HtmlCFilterQmax.lastElementChild.children["value"].textContent = String(
+        getFilterQ(FilterQmax)
+    );
+    let elements = HtmlCFilterEffects.elements;
+    elements["filter-bandpass"].checked = FilterBandpass;
+    elements["filter-highpass"].checked = FilterHighpass;
+    elements["filter-lowpass"].checked = FilterLowpass;
+    elements["filter-notch"].checked = FilterNotch;
+
+    HtmlCPannerDA.checked = PannerAreAllDisable;
+    HtmlCPannerXmin.children["panner-xmin"].valueAsNumber = PannerXmin;
+    HtmlCPannerXmin.lastElementChild.children["value"].textContent = String(
+        getPanner(PannerXmin)
+    );
+    HtmlCPannerXmax.children["panner-xmax"].valueAsNumber = (
+        LIMIT_PANNER_MAX - PannerXmax
+    );
+    HtmlCPannerXmax.lastElementChild.children["value"].textContent = String(
+        getPanner(PannerXmax)
+    );
+    HtmlCPannerYmin.children["panner-ymin"].valueAsNumber = PannerYmin;
+    HtmlCPannerYmin.lastElementChild.children["value"].textContent = String(
+        getPanner(PannerYmin)
+    );
+    HtmlCPannerYmax.children["panner-ymax"].valueAsNumber = (
+        LIMIT_PANNER_MAX - PannerYmax
+    );
+    HtmlCPannerYmax.lastElementChild.children["value"].textContent = String(
+        getPanner(PannerYmax)
+    );
+    HtmlCPannerZmin.children["panner-zmin"].valueAsNumber = PannerZmin;
+    HtmlCPannerZmin.lastElementChild.children["value"].textContent = String(
+        PannerZmin
+    );
+    HtmlCPannerZmax.children["panner-zmax"].valueAsNumber = (
+        LIMIT_PANNER_ZMAX - PannerZmax
+    );
+    HtmlCPannerZmax.lastElementChild.children["value"].textContent = String(
+        PannerZmax
+    );
+
+    HtmlCPbrateDA.checked = PbRateAreAllDisable;
+    HtmlCPbrateMin.children["pbrate-min"].valueAsNumber = DEFAULT_PBRATE_MIN;
+    HtmlCPbrateMin.lastElementChild.children["value"].textContent = (
+        getPlaybackRate(DEFAULT_PBRATE_MIN).toFixed(2)
+    );
+    HtmlCPbrateMax.children["pbrate-max"].valueAsNumber = (
+        LIMIT_PBRATE_MAX - DEFAULT_PBRATE_MAX
+    );
+    HtmlCPbrateMax.lastElementChild.children["value"].textContent = (
+        getPlaybackRate(DEFAULT_PBRATE_MAX).toFixed(2)
+    );
+
+    HtmlCRSPDA.checked = CutRSPAreAllDisable;
+    HtmlCREPDA.checked = CutREPAreAllDisable;
+
+    HtmlCTimemaxUpdate(TimeIntervalmax);
+    HtmlCTimeminUpdate(TimeIntervalmin);
+};
+
+/**@type{(appVersion: string) => undefined}*/
+const localStorageInit = function (appVersion) {
+    const s = localStorage;
+    if (s[STORAGE_VERSION] !== appVersion) {
+        s.setItem(STORAGE_VERSION, appVersion);
+
+        //clean old configurations
+        const localSKeys = Object.keys(s);
+        for (let key of localSKeys) {
+            if (!key.startsWith("inset.", 0)) {
+                s.removeItem(key);
+            }
+        }
+    }
+    let t = s[STORAGE_DELAY_DISABLE];
+    if (t === "0" || t === "1") {
+        DelayAreAllDisable = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_DELAY_DISABLE, String(Number(DelayAreAllDisable)));
+    }
+
+    let maxs = s[STORAGE_DELAY_TIMEMAX];
+    let mins = s[STORAGE_DELAY_TIMEMIN];
+    let maxn = Number(maxs);
+    let minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_TIMEMAX) {
+        DelayTimemax = maxn;
+        DelayTimemin = minn;
+    } else {
+        s.setItem(STORAGE_DELAY_TIMEMAX, String(DelayTimemax));
+        s.setItem(STORAGE_DELAY_TIMEMIN, String(DelayTimemin));
+    }
+
+    maxs = s[STORAGE_DELAY_FEEDBACKMAX];
+    mins = s[STORAGE_DELAY_FEEDBACKMIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_FEEDBACKMAX) {
+        DelayTimemax = maxn;
+        DelayTimemin = minn;
+    } else {
+        s.setItem(STORAGE_DELAY_FEEDBACKMAX, String(DelayFeedbackmax));
+        s.setItem(STORAGE_DELAY_FEEDBACKMIN, String(DelayFeedbackmin));
+    }
+
+    maxs = s[STORAGE_FADEIN];
+    maxn = Number(maxs);
+    if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
+        FadeIn = maxn;
+    } else {
+        s.setItem(STORAGE_FADEIN, String(FadeIn));
+    }
+
+    maxs = s[STORAGE_FADEOUT];
+    maxn = Number(maxs);
+    if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
+        FadeOut = maxn;
+    } else {
+        s.setItem(STORAGE_FADEOUT, String(FadeOut));
+    }
+
+    t = s[STORAGE_FILTER_DISABLE];
+    if (t === "0" || t === "1") {
+        FilterAreAllDisable = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_FILTER_DISABLE, String(Number(FilterAreAllDisable)));
+    }
+
+    maxs = s[STORAGE_FILTER_FREQMAX];
+    mins = s[STORAGE_FILTER_FREQMIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_FREQMAX) {
+        FilterFreqmax = maxn;
+        FilterFreqmin = minn;
+    } else {
+        s.setItem(STORAGE_FILTER_FREQMAX, String(FilterFreqmax));
+        s.setItem(STORAGE_FILTER_FREQMIN, String(FilterFreqmin));
+    }
+
+    maxs = s[STORAGE_FILTER_QMAX];
+    mins = s[STORAGE_FILTER_QMIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_QMAX) {
+        FilterQmax = maxn;
+        FilterQmin = minn;
+    } else {
+        s.setItem(STORAGE_FILTER_QMAX, String(FilterQmax));
+        s.setItem(STORAGE_FILTER_QMIN, String(FilterQmin));
+    }
+
+    t = s[STORAGE_FILTER_BANDPASS];
+    if (t === "0" || t === "1") {
+        FilterBandpass = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_FILTER_BANDPASS, String(Number(FilterBandpass)));
+    }
+    t = s[STORAGE_FILTER_HIGHPASS];
+    if (t === "0" || t === "1") {
+        FilterHighpass = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_FILTER_HIGHPASS, String(Number(FilterHighpass)));
+    }
+    t = s[STORAGE_FILTER_LOWPASS];
+    if (t === "0" || t === "1") {
+        FilterLowpass = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_FILTER_LOWPASS, String(Number(FilterLowpass)));
+    }
+    t = s[STORAGE_FILTER_NOTCH];
+    if (t === "0" || t === "1") {
+        FilterNotch = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_FILTER_NOTCH, String(Number(FilterNotch)));
+    }
+
+
+    t = s[STORAGE_PANNER_DISABLE];
+    if (t === "0" || t === "1") {
+        PannerAreAllDisable = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_PANNER_DISABLE, String(Number(PannerAreAllDisable)));
+    }
+
+    maxs = s[STORAGE_PANNER_XMAX];
+    mins = s[STORAGE_PANNER_XMIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+        PannerXmax = maxn;
+        PannerXmin = minn;
+    } else {
+        s.setItem(STORAGE_PANNER_XMAX, String(PannerXmax));
+        s.setItem(STORAGE_PANNER_XMIN, String(PannerXmin));
+    }
+
+    maxs = s[STORAGE_PANNER_YMAX];
+    mins = s[STORAGE_PANNER_YMIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+        PannerYmax = maxn;
+        PannerYmin = minn;
+    } else {
+        s.setItem(STORAGE_PANNER_YMAX, String(PannerYmax));
+        s.setItem(STORAGE_PANNER_YMIN, String(PannerYmin));
+    }
+
+    maxs = s[STORAGE_PANNER_ZMAX];
+    mins = s[STORAGE_PANNER_ZMIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_ZMAX) {
+        PannerZmax = maxn;
+        PannerZmin = minn;
+    } else {
+        s.setItem(STORAGE_PANNER_ZMAX, String(PannerZmax));
+        s.setItem(STORAGE_PANNER_ZMIN, String(PannerZmin));
+    }
+
+    t = s[STORAGE_PBRATE_DISABLE];
+    if (t === "0" || t === "1") {
+        PbRateAreAllDisable = Boolean(Number(t));
+    } else {
+        s.setItem(STORAGE_PBRATE_DISABLE, String(Number(PbRateAreAllDisable)));
+    }
+
+    maxs = s[STORAGE_PBRATE_MAX];
+    mins = s[STORAGE_PBRATE_MIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+        PbRatemax = maxn;
+        PbRatemin = minn;
+    } else {
+        s.setItem(STORAGE_PBRATE_MAX, String(PbRatemax));
+        s.setItem(STORAGE_PBRATE_MIN, String(PbRatemin));
+    }
+
+    maxs = s[STORAGE_TIME_MAX];
+    mins = s[STORAGE_TIME_MIN];
+    maxn = Number(maxs);
+    minn = Number(mins);
+    if (LIMIT_TIMEINTERVAL_MIN <= mins
+        && minn <= maxn
+        && maxn <= LIMIT_TIMEINTERVAL_MAX
+    ) {
+        TimeIntervalmax = maxn;
+        TimeIntervalmin = minn;
+    } else {
+        s.setItem(STORAGE_TIME_MAX, String(TimeIntervalmax));
+        s.setItem(STORAGE_TIME_MIN, String(TimeIntervalmin));
+    }
+};
 
 const openApp = function () {
+    setHtmlAppConfiguration();
+
     document.body.addEventListener("keyup", BodyOnkeyup, true);
 
     //Drag and Drop
@@ -2799,7 +3292,7 @@ const openApp = function () {
 
 const main = function () {
     //CheckAudioContext
-    //
+
     const HtmlPresError = document.getElementById("presentation-error");
     assert(HtmlPresError !== null, "#presentation-error is not found", false);
 
@@ -2819,5 +3312,7 @@ const main = function () {
     }
     switchTheme();
     HtmlThemeSwitcher.addEventListener("click", switchTheme, true);
+
+    localStorageInit("dev-c-2025-03");
 };
 main();
