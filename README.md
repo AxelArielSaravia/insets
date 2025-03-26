@@ -21,7 +21,7 @@ and open it on any browser. That's all, Yey!!
 
 * [ ] Implement a notification sistem
 
-* [ ] Add a minify to the Prodcution Builder
+* [x] Add a minify to the Prodcution Builder
 
 * Metadatas
 * [ ] Favicons
