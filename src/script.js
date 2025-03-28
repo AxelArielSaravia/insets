@@ -1,6 +1,29 @@
 "use strict";
 //do not change this without check the ArrayTypes
 const AUDIOELEMENTS_MAX = 128;
+const FREE_TIME = 5000; //ms
+
+const EVENT_ONCE = {once: true};
+const EVENT_CO = {capture: true, once: true};
+
+const AUDIO_EVENT_MAX_VALUE = 120;
+const AUDIO_EVENT_MIN_VALUE = 1;
+
+const LIMIT_MIN = 0;
+const LIMIT_DELAY_FEEDBACKMAX = 17;
+const LIMIT_DELAY_TIMEMAX = 49;
+const LIMIT_FADES_MAX = 8;
+const LIMIT_FILTER_FREQMAX = 248;
+const LIMIT_FILTER_QMAX = 36;
+const LIMIT_FILTER_EFFECTS = 4;
+const LIMIT_PANNER_MAX = 100;
+const LIMIT_PANNER_ZMAX = 50;
+const LIMIT_PBRATE_MAX = 20;
+//handreads of miliseconds
+const LIMIT_TIMEINTERVAL_MAX = 18000;
+const LIMIT_TIMEINTERVAL_MIN = 5;
+const LIMIT_VOLUME_MAX = 15;    //1.5 150%
+const LIMIT_VOLUME_MIN = 1;     //0.1  10%
 
 const DEFAULT_AREALLDISABLE = false;
 const DEFAULT_DELAY_FEEDBACKMAX = 16;
@@ -9,6 +32,8 @@ const DEFAULT_DELAY_TIMEMAX = 39;
 const DEFAULT_DELAY_TIMEMIN = 3;
 const DEFAULT_FADEIN = 2;
 const DEFAULT_FADEOUT = 5;
+const DEFAULT_FADEIN_SEC = 0.1;
+const DEFAULT_FADEOUT_SEC = 0.16;
 const DEFAULT_FILTER_FREQMAX = 240;
 const DEFAULT_FILTER_FREQMIN = 40;
 const DEFAULT_FILTER_QMAX = 36;
@@ -28,73 +53,17 @@ const DEFAULT_PBRATE_MIN = 5;
 //handreads of miliseconds
 const DEFAULT_TIMEINTERVAL_MAX = 50;
 const DEFAULT_TIMEINTERVAL_MIN = 8;
-
 //DEFAULT_VOLUME / 10 -> 1 100%
 const DEFAULT_VOLUME = 10;
 
-const LIMIT_MIN = 0;
-const LIMIT_DELAY_FEEDBACKMAX = 17;
-const LIMIT_DELAY_TIMEMAX = 49;
-const LIMIT_FADES_MAX = 8;
-const LIMIT_FILTER_FREQMAX = 248;
-const LIMIT_FILTER_QMAX = 36;
-const LIMIT_FILTER_EFFECTS = 4;
-const LIMIT_PANNER_MAX = 100;
-const LIMIT_PANNER_ZMAX = 50;
-const LIMIT_PBRATE_MAX = 20;
-//handreads of miliseconds
-const LIMIT_TIMEINTERVAL_MAX = 18000;
-const LIMIT_TIMEINTERVAL_MIN = 5;
-const LIMIT_VOLUME_MAX = 15;    //1.5 150%
-const LIMIT_VOLUME_MIN = 1;     //0.1  10%
-
-const AUDIO_EVENT_MAX_VALUE = 120;
-const AUIDIO_EVENT_MIN_VALUE = 1;
-
-const EVENT_ONCE = {once: true};
-const EVENT_CO = {capture: true, once: true};
-
-const FREE_TIME = 5000; //ms
-
-const CARDINAL_MAX = 15;
-const EVENTS_MAX_VALUE = 80;
-const EVENTS_MIN_VALUE = 0;
-
-const SetEvents = {
-    cap: CARDINAL_MAX + 1,
-    max: CARDINAL_MAX,
-    len: 1,
-    buf: (function () {
-        var a = new Uint8Array(CARDINAL_MAX + 1);
-        a[0] = 1;
-        return a;
-    }()),
-    sum: 1,
-    zeros: 0
-};
-
-const STARTEDID_MAX = Number.MAX_SAFE_INTEGER;
-let context = null;
-let Started = false;
-let StartedId = 0;
-
-const startedIdNext = function () {
-    if (StartedId === STARTEDID_MAX) {
-        StartedId = 0;
-    } else {
-        StartedId += 1;
-    }
-    return StartedId;
-};
-
-const AlertAnimation = {
+const ANIMATION_ALERT = {
     keyframes: [{color: "red"}],
     timing: {
         duration: 300,
         iterations: 3,
     }
 };
-const SelectAnimation = {
+const ANIMATION_SELECT = {
     keyframes: [{"--color-audio-text": "var(--color-audio-select)"}],
     timing: {
         duration: 800,
@@ -102,9 +71,10 @@ const SelectAnimation = {
         delay: 0
     }
 };
-let reduceMotion = false;
 
-const Reader = new FileReader();
+const STARTEDID_MAX = Number.MAX_SAFE_INTEGER;
+
+const READER = new FileReader();
 
 const STORAGE_CREP_DISABLE = "inset.crep.disabled";
 const STORAGE_CRSP_DISABLE = "inset.crsp.disabled";
@@ -174,6 +144,22 @@ const StorageKeys = [
     STORAGE_VERSION
 ];
 
+const CARDINAL_MAX = 15;
+const EVENTS_MAX_VALUE = 80;
+const EVENTS_MIN_VALUE = 0;
+const SetEvents = {
+    cap: CARDINAL_MAX + 1,
+    max: CARDINAL_MAX,
+    len: 1,
+    buf: (function () {
+        var a = new Uint8Array(CARDINAL_MAX + 1);
+        a[0] = 1;
+        return a;
+    }()),
+    sum: 1,
+    zeros: 0
+};
+
 let DelayAreAllDisable = DEFAULT_AREALLDISABLE;
 let DelayTimemax = DEFAULT_DELAY_TIMEMAX;
 let DelayTimemin = DEFAULT_DELAY_TIMEMIN;
@@ -181,6 +167,8 @@ let DelayFeedbackmax = DEFAULT_DELAY_FEEDBACKMAX;
 let DelayFeedbackmin = DEFAULT_DELAY_FEEDBACKMIN;
 let FadeIn = DEFAULT_FADEIN;
 let FadeOut = DEFAULT_FADEOUT;
+let FadeInSec = DEFAULT_FADEIN_SEC;
+let FadeOutSec = DEFAULT_FADEOUT_SEC;
 let FilterAreAllDisable = DEFAULT_AREALLDISABLE;
 let FilterFreqmax = DEFAULT_FILTER_FREQMAX;
 let FilterFreqmin = DEFAULT_FILTER_FREQMIN;
@@ -203,15 +191,31 @@ let PbRatemax = DEFAULT_PBRATE_MAX;
 let PbRatemin = DEFAULT_PBRATE_MIN;
 let CutREPAreAllDisable = DEFAULT_AREALLDISABLE;
 let CutRSPAreAllDisable = DEFAULT_AREALLDISABLE;
-
 //handreads of miliseconds
 let TimeIntervalmax = DEFAULT_TIMEINTERVAL_MAX;
 let TimeIntervalmin = DEFAULT_TIMEINTERVAL_MIN;
 let TimeTemporalmax = DEFAULT_TIMEINTERVAL_MAX;
 let TimeTemporalmin = DEFAULT_TIMEINTERVAL_MIN;
 
+let reduceMotion = false;
+let play = false;
+let context = null;
+let Started = false;
+let StartedId = 0;
+
+const startedIdNext = function () {
+    if (StartedId === STARTEDID_MAX) {
+        StartedId = 0;
+    } else {
+        StartedId += 1;
+    }
+    return StartedId;
+};
+
 let AudioSelectedPrevIdx = -1;
 let AudioSelectedIdx = -1;
+
+let AudioEventsSum = 0;
 
 const SelectedAudios = {
     cap: AUDIOELEMENTS_MAX,
@@ -219,8 +223,6 @@ const SelectedAudios = {
     buf: new Uint8Array(AUDIOELEMENTS_MAX),
     all: false,
 };
-
-let AudioEventsSum = 0;
 
 const ZombieList = {
     /**@type{Array<AudioState>}*/
@@ -312,7 +314,7 @@ const AudioList = {
         audio.pbrate = 1;
 
         //clean
-        audio.html.removeEventListener("timeupdate", AudioOntimeupdate);
+        //audio.html.removeEventListener("timeupdate", AudioOntimeupdate);
         audio.html.removeEventListener("ended", AudioOnended);
         URL.revokeObjectURL(audio.html.src);
     },
@@ -345,7 +347,6 @@ const timeoutFreeFn = function () {
     if (timeoutFree !== undefined) {
         ZombieList.free();
         HtmlAudioZombies.replaceChildren();
-
         timeoutFree = undefined;
     }
 };
@@ -366,7 +367,7 @@ const assert = function (expression, msg) {
 /**
  * @type {(min: number, max: number) => number}*/
 const random = function (min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
+    return Math.trunc(Math.random() * (max - min + 1) + min);
 };
 
 //Html Elements
@@ -710,6 +711,7 @@ const audioCreateState = function (HtmlAudio, source) {
     const input = context.createGain();
     const output = context.createGain();
     input.gain.value = DEFAULT_VOLUME / 10;
+    output.gain.value = 0;
 
     source.connect(input);
     output.connect(context.destination);
@@ -790,8 +792,6 @@ const audioRandomizeConnections = function (audio) {
             q = getFilterQ(random(FilterQmin, FilterQmax));
         }
         let freq = getFilterFreq(random(FilterFreqmin, FilterFreqmax));
-
-
         audio.filter.frequency.value = freq;
         audio.filter.type = type;
         audio.filter.Q.value = q;
@@ -816,6 +816,68 @@ const audioRandomizeConnections = function (audio) {
     prev.connect(audio.output);
 };
 
+const AudiosPlaying = {
+    raf: undefined,
+    buf: [],
+    len: 0,
+    push(audio) {
+        AudiosPlaying.buf.push(audio);
+        AudiosPlaying.len += 1;
+    },
+    removeByIndex(i) {
+        if (i < 0 || i >= AudiosPlaying.len) {
+            return;
+        }
+        AudiosPlaying.buf.splice(i, 1);
+        AudiosPlaying.len -= 1;
+    },
+    removeAudio(audio) {
+        if (AudiosPlaying.len === 0) {
+            return false;
+        }
+        let i = AudiosPlaying.buf.indexOf(audio);
+        if (i === -1) {
+            return false;
+        }
+        AudiosPlaying.buf.splice(i, 1);
+        AudiosPlaying.len -= 1;
+        return true;
+    },
+};
+
+const currentTimeChange = function () {
+    if (AudiosPlaying.len === 0) {
+        cancelAnimationFrame(AudiosPlaying.raf);
+        return;
+    }
+
+    let i = 0;
+    while (i < AudiosPlaying.len) {
+        let audio = AudiosPlaying.buf[i];
+        let j = audio.html._index;
+        if (audio.html.paused || audio.html.ended) {
+            AudiosPlaying.removeByIndex(i);
+            i += 1;
+            continue;
+        }
+        if (audio.endPoint <= audio.html.currentTime) {
+            AudiosPlaying.removeByIndex(i);
+            HtmlAppContainer.children[j].setAttribute("data-playing", "0");
+            audioAction(j, "pause");
+        } else {
+            if (AudioSelectedIdx === j) {
+                updateHtmlPanelCurrentTime(
+                    audio.html.currentTime * 100 / audio.duration,
+                    audio.html.currentTime
+                );
+            }
+            i += 1;
+        }
+    }
+
+    AudiosPlaying.raf = requestAnimationFrame(currentTimeChange);
+};
+
 const audioPlay = function (audio) {
     if (!audio.pbrateDisabled) {
         let pbrate = getPlaybackRate(
@@ -830,32 +892,32 @@ const audioPlay = function (audio) {
     if (audio.duration >= 1) {
         let rsp = audio.startTime;
         let rep = audio.endTime;
-        let interval = 0.5;
+        let interval = 50;
         if (!audio.rspDisabled && !audio.repDisabled) {
-            let d = Math.round(audio.duration * 10);
-            let p = Math.round((rep - rsp) * 10);
-            let min = 5;
+            let d = Math.trunc(audio.duration * 100);
+            let p = Math.trunc(rep * 100) - Math.trunc(rsp * 100);
+            let min = 50;
             let max = 0;
-            if (p < 5) {
+            if (p < 50) {
                 max = min;
             } else if (p > d) {
                 max = d;
             } else {
                 max = p;
             }
-            interval = random(min, max) / 10;
+            interval = random(min, max);
         }
         if (!audio.rspDisabled) {
-            rsp = (
-                random(audio.startTime * 10, (rep - interval) * 10)
-                    / 10
-            );
+            rsp = (random(
+                Math.trunc(audio.startTime * 100),
+                Math.trunc(rep * 100) - interval
+            ) / 100);
         }
         if (!audio.repDisabled) {
-            rep = (
-                random((rsp + interval) * 10, audio.endTime * 10)
-                    / 10
-            );
+            rep = (random(
+                Math.trunc(rsp * 100) + interval,
+                Math.trunc(audio.endTime * 100)
+            ) / 100);
         }
         audio.startPoint = rsp;
         audio.endPoint = rep;
@@ -864,15 +926,34 @@ const audioPlay = function (audio) {
     audio.html.currentTime = audio.startPoint;
 
     audioRandomizeConnections(audio);
+    audio.output.gain.linearRampToValueAtTime(1,context.currentTime + FadeInSec);
+
+    //return a promise: rejected if playback cannot be started for any reason
     audio.html.play();
     audio.playing = true;
+
+    AudiosPlaying.push(audio)
+    if (!play) {
+        play = true;
+        AudiosPlaying.raf = requestAnimationFrame(currentTimeChange);
+    }
 };
 
 const audioPause = function (audio) {
     if (audio.playing) {
+        audio.output.gain.cancelScheduledValues(context.currentTime);
+        /*
+        const fo = getFade(FadeOut) / 1000;
+
+        audio.output.gain.linearRampToValueAtTime(
+            0,
+            context.currentTime + fo
+        );
+        */
         audio.delay.delayTime.cancelScheduledValues(context.currentTime);
         audio.delay.delayTime.value = 0;
         audio.html.pause();
+        audio.output.gain.value = 0;
         audio.playing = false;
         return true;
     }
@@ -898,6 +979,7 @@ const audioAction = function (i, action) {
         audioPlay(state);
         if (i === AudioSelectedIdx) {
             if (state.duration >= 1) {
+                HtmlAppPanel.setAttribute("data-playing", "1");
                 updateHtmlPanelRP(
                     state.startPoint * 100 / state.duration,
                     state.endPoint * 100 / state.duration
@@ -912,10 +994,16 @@ const audioAction = function (i, action) {
     } else if ("pause" === action) {
         audioPause(state);
         if (i === AudioSelectedIdx) {
+            HtmlAppPanel.setAttribute("data-playing", "0");
             if (state.duration >= 1) {
                 updateHtmlPanelRP(0, 100);
             }
             updateHtmlPanelCurrentTime(0, 0);
+        }
+        AudiosPlaying.removeAudio(state);
+        if (AudiosPlaying.len === 0) {
+            play = false;
+            cancelAnimationFrame(AudiosPlaying.raf);
         }
         return true;
     } else if ("remove" === action) {
@@ -1029,15 +1117,6 @@ const verifyHtmlCSets = function () {
 
 };
 
-const getAudioStateIndex = function (HtmlAudio) {
-    for (let i = 0; i < AudioList.len; i += 1) {
-        if (HtmlAudio === AudioList.buf[i].html) {
-            return i;
-        }
-    }
-    return -1;
-}
-
 const ZombieAudioOncanplaythrough = function (e) {
     const HtmlAudio = e.currentTarget;
     const HtmlAudioElement = HtmlAudioZombies.children[0];
@@ -1053,7 +1132,7 @@ const ZombieAudioOncanplaythrough = function (e) {
     HtmlAudio._endPoint = HtmlAudio.duration;
     HtmlAudio._index = AudioList.len;
 
-    HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
+    //HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
     HtmlAudio.addEventListener("ended", AudioOnended, true);
 
     //there is a new AudioEvent
@@ -1096,7 +1175,7 @@ const AudioOncanplaythrough = function (e) {
     HtmlAudio._endPoint = HtmlAudio.duration;
     HtmlAudio._index = AudioList.len;
 
-    HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
+    //HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
     HtmlAudio.addEventListener("ended", AudioOnended, true);
 
     HtmlAudioElement._HtmlTitle = HtmlAudioElement.children["title"];
@@ -1143,9 +1222,6 @@ const AudioOntimeupdate = function (e) {
             assert(AudioList.len === HtmlAppContainer.childElementCount);
             let i = HtmlAudio._index;
             HtmlAppContainer.children[i].setAttribute("data-playing", "0");
-            if (i === AudioSelectedIdx) {
-                HtmlAppPanel.setAttribute("data-playing", "0");
-            }
             audioAction(i, "pause");
         } else {
             if (AudioSelectedIdx === HtmlAudio._index) {
@@ -1160,12 +1236,14 @@ const AudioOntimeupdate = function (e) {
 
 const AudioOnended = function (e) {
     const HtmlAudio = e.currentTarget;
+    if (HtmlAudio._zombie) {
+        //HtmlAudio.removeEventListener("timeupdate", AudioOntimeupdate);
+        HtmlAudio.removeEventListener("ended", AudioOnended);
+        return;
+    }
     if (HtmlAudio.paused || HtmlAudio.ended) {
-        let i = getAudioStateIndex(HtmlAudio);
+        let i = HtmlAudio._index;
         HtmlAppContainer.children[i].setAttribute("data-playing", "0");
-        if (i === AudioSelectedIdx) {
-            HtmlAppPanel.setAttribute("data-playing", "0");
-        }
         audioAction(i, "pause")
     }
 }
@@ -1224,7 +1302,6 @@ const addFiles = function (files) {
             HtmlAudio._endPoint = 0;
             HtmlAudio._index = 0;
             HtmlAudio._zombie = false;
-
 
             HtmlAudio.addEventListener("error", AudioOnerror, EVENT_CO);
             HtmlAudio.addEventListener(
@@ -1341,7 +1418,6 @@ const SelectionSums = {
 const randomAudioSelection = function (Keys, Sums, sum, w) {
     assert(Keys.len === Sums.len, `ERROR: Keys.len: ${Keys.len}, Sums.len: ${Sums.len}`);
     assert(w > 0, "ERROR on randomAudioSelection: the weight is negative");
-
     let e = 0;
     for (;;) {
         let selected = 0;
@@ -1357,7 +1433,7 @@ const randomAudioSelection = function (Keys, Sums, sum, w) {
             let startI = 0;
             let endI = Sums.len;
             while (startI <= endI) {
-                const midI = Math.floor((startI + endI) / 2);
+                const midI = Math.trunc((startI + endI) / 2);
                 if (Sums.buf[midI] < target) {
                     startI = midI + 1;
                 } else {
@@ -1432,15 +1508,14 @@ const randomExecution = function (id) {
     if (Started && StartedId === id) {
         const interval = random(TimeIntervalmin, TimeIntervalmax) * 100;
         console.info("Next execution:", interval);
-        console.info("AudioList:", AudioList);
         if (randomSetSelection()) {
             let end = 0;
             if (SelectedAudios.all) {
                 end = AudioList.len;
                 if (AudioSelectedIdx !== -1 && !reduceMotion) {
                     HtmlPTitle.animate(
-                        SelectAnimation.keyframes,
-                        SelectAnimation.timing
+                        ANIMATION_SELECT.keyframes,
+                        ANIMATION_SELECT.timing
                     );
                 }
                 for (let i = 0; i < end; i += 1) {
@@ -1448,8 +1523,8 @@ const randomExecution = function (id) {
                     HtmlAudio.setAttribute("data-playing", "1");
                     if (!reduceMotion) {
                         HtmlAudio.animate(
-                            SelectAnimation.keyframes,
-                            SelectAnimation.timing
+                            ANIMATION_SELECT.keyframes,
+                            ANIMATION_SELECT.timing
                         );
                     }
                     audioAction(i, "play",)
@@ -1458,18 +1533,18 @@ const randomExecution = function (id) {
                 end = SelectedAudios.len;
                 for (let i = 0; i < end; i += 1) {
                     const j = SelectedAudios.buf[i];
-                    audioAction(j, "play",)
                     const HtmlAudio = HtmlAppContainer.children[j];
                     HtmlAudio.setAttribute("data-playing", "1");
+                    audioAction(j, "play",)
                     if (!reduceMotion) {
                         HtmlAudio.animate(
-                            SelectAnimation.keyframes,
-                            SelectAnimation.timing
+                            ANIMATION_SELECT.keyframes,
+                            ANIMATION_SELECT.timing
                         );
                         if (AudioSelectedIdx === j) {
                             HtmlPTitle.animate(
-                                SelectAnimation.keyframes,
-                                SelectAnimation.timing
+                                ANIMATION_SELECT.keyframes,
+                                ANIMATION_SELECT.timing
                             );
                         }
                     }
@@ -1756,8 +1831,8 @@ const HtmlAppConfigOnclick = function (e) {
             TimeTemporalmax = TimeTemporalmin;
             if (!reduceMotion) {
                 HtmlCTimemin.animate(
-                    AlertAnimation.keyframes,
-                    AlertAnimation.timing
+                    ANIMATION_ALERT.keyframes,
+                    ANIMATION_ALERT.timing
                 );
             }
         } else {
@@ -1790,8 +1865,8 @@ const HtmlAppConfigOnclick = function (e) {
             TimeTemporalmax = TimeTemporalmin;
             if (!reduceMotion) {
                 HtmlCTimemin.animate(
-                    AlertAnimation.keyframes,
-                    AlertAnimation.timing
+                    ANIMATION_ALERT.keyframes,
+                    ANIMATION_ALERT.timing
                 );
             }
         } else {
@@ -1824,8 +1899,8 @@ const HtmlAppConfigOnclick = function (e) {
         } else {
             if (!reduceMotion) {
                 HtmlCTimemin.animate(
-                    AlertAnimation.keyframes,
-                    AlertAnimation.timing
+                    ANIMATION_ALERT.keyframes,
+                    ANIMATION_ALERT.timing
                 );
             }
         }
@@ -1837,8 +1912,8 @@ const HtmlAppConfigOnclick = function (e) {
             TimeTemporalmin = TimeTemporalmax;
             if (!reduceMotion) {
                 HtmlCTimemax.animate(
-                    AlertAnimation.keyframes,
-                    AlertAnimation.timing
+                    ANIMATION_ALERT.keyframes,
+                    ANIMATION_ALERT.timing
                 );
             }
         } else {
@@ -1867,8 +1942,8 @@ const HtmlAppConfigOnclick = function (e) {
             TimeTemporalmin = TimeTemporalmax;
             if (!reduceMotion) {
                 HtmlCTimemax.animate(
-                    AlertAnimation.keyframes,
-                    AlertAnimation.timing
+                    ANIMATION_ALERT.keyframes,
+                    ANIMATION_ALERT.timing
                 );
             }
         } else {
@@ -1906,8 +1981,8 @@ const HtmlAppConfigOnclick = function (e) {
         } else {
             if (!reduceMotion) {
                 HtmlCTimemax.animate(
-                    AlertAnimation.keyframes,
-                    AlertAnimation.timing
+                    ANIMATION_ALERT.keyframes,
+                    ANIMATION_ALERT.timing
                 );
             }
         }
@@ -1934,6 +2009,8 @@ const HtmlAppConfigOnclick = function (e) {
         localStorage.setItem(STORAGE_FADEOUT, String(DEFAULT_FADEOUT));
         FadeIn = DEFAULT_FADEIN;
         FadeOut = DEFAULT_FADEOUT;
+        FadeInSec = DEFAULT_FADEIN_SEC;
+        FadeOutSec = DEFAULT_FADEOUT_SEC;
 
     } else if ("delay-reset" === target.name) {
         HtmlCDelayTimemin.children["delay-timemin"].valueAsNumber = (
@@ -2096,10 +2173,9 @@ const HtmlAppConfigOninput = function (e) {
         if (target.files?.[0] === undefined) {
             return;
         }
-        Reader.readAsText(target.files[0]);
+        READER.readAsText(target.files[0]);
 
     } else if ("elements-checkbox" === target.name) {
-        console.info("elements-checkbox",{target})
         if (HtmlCSetDetails.getAttribute("data-elements") === "0") {
             HtmlCSetDetails.setAttribute("data-elements", "1");
         } else {
@@ -2151,6 +2227,7 @@ const HtmlAppConfigOninput = function (e) {
 
     } else if ("fadein" === target.name) {
         FadeIn = target.valueAsNumber;
+        FadeInSec = (getFade(target.valueAsNumber) / 1000);
         HtmlCFadein.lastElementChild.children["value"].textContent = String(
             getFade(target.valueAsNumber)
         );
@@ -2158,6 +2235,7 @@ const HtmlAppConfigOninput = function (e) {
 
     } else if ("fadeout" === target.name) {
         FadeOut = target.valueAsNumber;
+        FadeOut = (getFade(target.valueAsNumber) / 1000);
         HtmlCFadeout.lastElementChild.children["value"].textContent = String(
             getFade(target.valueAsNumber)
         );
@@ -2496,9 +2574,23 @@ const HtmlAppMenuOnclick = function (e) {
                 clearTimeout(executeTimeout);
                 executeTimeout = undefined;
             }
-            for (let i = 0; i < AudioList.len; i += 1) {
-                audioAction(i, "pause");
-                HtmlAppContainer.children[i].setAttribute("data-playing", "0");
+            if (play) {
+                cancelAnimationFrame(AudiosPlaying.raf);
+                for (let audio of AudiosPlaying.buf) {
+                    let i = audio.html._index;
+                    audioPause(audio);
+                    HtmlAppContainer.children[i].setAttribute("data-playing", "0");
+                    if (i === AudioSelectedIdx) {
+                        HtmlAppPanel.setAttribute("data-playing", "0");
+                        if (audio.duration >= 1) {
+                            updateHtmlPanelRP(0, 100);
+                        }
+                        updateHtmlPanelCurrentTime(0, 0);
+                    }
+                }
+                AudiosPlaying.buf.length = 0;
+                AudiosPlaying.len = 0;
+                play = false;
             }
             target.setAttribute("data-start", "0");
         }
@@ -2506,9 +2598,16 @@ const HtmlAppMenuOnclick = function (e) {
         if (AudioList.len === 0) {
             return;
         }
-
         defaultSets();
-
+        if (play) {
+            cancelAnimationFrame(AudiosPlaying.raf);
+            for (let audio of AudiosPlaying.buf) {
+                audioPause(audio);
+            }
+            AudiosPlaying.buf.length = 0;
+            AudiosPlaying.len = 0;
+            play = false;
+        }
         for (let audio of AudioList.buf) {
             audioPause(audio);
             AudioList.cleanAudio(audio);
@@ -2527,7 +2626,7 @@ const HtmlAppMenuOnclick = function (e) {
             HtmlAppContainer.children
         );
         clearTimeout(timeoutFree);
-        timeoutFree = setTimeout(timeoutFreeFn,FREE_TIME);
+        timeoutFree = setTimeout(timeoutFreeFn, FREE_TIME);
 
     } else if ("file" === name) {
         target.value = "";
@@ -2555,15 +2654,9 @@ const HtmlAppContainerOnclick = function (e) {
         let i = getHtmlChildIndex(HtmlAppContainer, HtmlAudioElement);
         if (HtmlAudioElement.getAttribute("data-playing") === "0") {
             HtmlAudioElement.setAttribute("data-playing", "1");
-            if (i === AudioSelectedIdx) {
-                HtmlAppPanel.setAttribute("data-playing", "1");
-            }
             audioAction(i, "play");
         } else {
             HtmlAudioElement.setAttribute("data-playing", "0");
-            if (i === AudioSelectedIdx) {
-                HtmlAppPanel.setAttribute("data-playing", "0");
-            }
             audioAction(i, "pause");
         }
     } else if ("remove" === name) {
@@ -2662,7 +2755,7 @@ const HtmlAppPanelOnclick = function (e) {
 
         const state = AudioList.get(AudioSelectedIdx);
         assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        if (state.events === AUIDIO_EVENT_MIN_VALUE) {
+        if (state.events === AUDIO_EVENT_MIN_VALUE) {
             return;
         }
         state.events -= 1;
@@ -2689,11 +2782,9 @@ const HtmlAppPanelOnclick = function (e) {
         const HtmlAudioElement = HtmlAppContainer.children[AudioSelectedIdx];
         if (HtmlAudioElement.getAttribute("data-playing") === "0") {
             HtmlAudioElement.setAttribute("data-playing", "1");
-            HtmlAppPanel.setAttribute("data-playing", "1");
             audioAction(AudioSelectedIdx, "play");
         } else {
             HtmlAudioElement.setAttribute("data-playing", "0");
-            HtmlAppPanel.setAttribute("data-playing", "0");
             audioAction(AudioSelectedIdx, "pause");
         }
     } else if ("close" === target.name) {
@@ -3129,6 +3220,7 @@ const localStorageInit = function (appVersion) {
     maxn = Number(maxs);
     if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
         FadeIn = maxn;
+        FadeInSec = getFade(maxn)/1000;
     } else {
         s.setItem(STORAGE_FADEIN, String(FadeIn));
     }
@@ -3137,6 +3229,7 @@ const localStorageInit = function (appVersion) {
     maxn = Number(maxs);
     if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
         FadeOut = maxn;
+        FadeOutSec = getFade(maxn)/1000;
     } else {
         s.setItem(STORAGE_FADEOUT, String(FadeOut));
     }
@@ -3270,13 +3363,15 @@ const localStorageInit = function (appVersion) {
     ) {
         TimeIntervalmax = maxn;
         TimeIntervalmin = minn;
+        TimeTemporalmax = maxn;
+        TimeTemporalmin = minn;
     } else {
         s.setItem(STORAGE_TIME_MAX, String(TimeIntervalmax));
         s.setItem(STORAGE_TIME_MIN, String(TimeIntervalmin));
     }
 };
 const loadConfigFile = function () {
-    const text = Reader.result;
+    const text = READER.result;
     //can throw error
     const json = JSON.parse(text);
     let t = json[STORAGE_CRSP_DISABLE];
@@ -3329,6 +3424,7 @@ const loadConfigFile = function () {
         maxn = Number(maxs);
         if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
             FadeIn = maxn;
+            FadeInSec = getFade(maxn)/1000;
             localStorage.setItem(STORAGE_FADEIN, maxs);
         }
     }
@@ -3338,6 +3434,7 @@ const loadConfigFile = function () {
         maxn = Number(maxs);
         if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
             FadeOut = maxn;
+            FadeOutSec = getFade(maxn)/1000;
             localStorage.setItem(STORAGE_FADEOUT, maxs);
         }
     }
@@ -3466,6 +3563,8 @@ const loadConfigFile = function () {
         ) {
             TimeIntervalmax = maxn;
             TimeIntervalmin = minn;
+            TimeTemporalmin = minn;
+            TimeTemporalmax = maxn;
             localStorage.setItem(STORAGE_TIME_MAX, maxs);
             localStorage.setItem(STORAGE_TIME_MIN, mins);
         }
@@ -3517,12 +3616,11 @@ const openApp = function () {
         reduceMotion = e.matches;
     });
 
-    Reader.addEventListener("load", loadConfigFile, true);
+    READER.addEventListener("load", loadConfigFile, true);
 };
 
 const main = function () {
     //CheckAudioContext
-
     const HtmlPresError = document.getElementById("presentation-error");
     assert(HtmlPresError !== null, "#presentation-error is not found", false);
 

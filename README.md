@@ -23,6 +23,7 @@ and open it on any browser. That's all, Yey!!
 * [x] Adds the audio visualization
 
 * [ ] Implement the FadeIn and Fadeout on the Play and Pause actions
+* [ ] Animation cancel
 
 * [x] Use the localstorage to save the configuration
 * [x] Implement "import"/"export" functionalities
