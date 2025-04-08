@@ -21,17 +21,18 @@ and open it on any browser. That's all, Yey!!
 
 * [x] Adds the change AudioEvent
 * [x] Adds the audio visualization
-
-* [ ] Implement the FadeIn and Fadeout on the Play and Pause actions
-* [ ] Animation cancel
-
+* [x] Review killing zombies
+* [x] Animation cancel
 * [x] Use the localstorage to save the configuration
 * [x] Implement "import"/"export" functionalities
+* [x] Implement the FadeIn and Fadeout on the Play and Pause actions
+* [x] Thinking about audios less than 1 second
+* [x] Thinking about the relation of Playback Rate and the fadeout aplication
 
 * [ ] Implement a notification sistem
 
 * [x] Add a minify to the Prodcution Builder
 
-* Metadatas
+* ### Metadatas
 * [ ] Favicons
 * [ ] ogg

@@ -1,5 +1,4 @@
 :root {
-
     --color-dark-base: #060606;
     --color-dark-bg: #121212;
     --color-dark-btn: #282525;
@@ -256,7 +255,6 @@ body>main[data-app="1"] .presentation {
 .checkboxes {
     display:flex;
     flex-wrap: wrap;
-    height1ch;
     border: none;
     margin: 0;
     padding: 0;
@@ -688,6 +686,7 @@ div.app .panel [name=playback] {
 }
 div.app .panel [name=playback] .current-text {
     text-align: center;
+    padding-top: 1ch;
 }
 
 div.app .panel .time-text {
@@ -743,6 +742,7 @@ div.app .panel .ranges :where(
     position: absolute;
     inset: 0;
 }
+
 div.app .panel .ranges .current {
     --translate: 0%;
     background: var(--color-select);
@@ -780,6 +780,22 @@ div.app .panel .ranges:has( .end-time-input:active) .end-time {
     background: var(--color-select)!important;
 }
 
+div.app .panel[data-short="1"] [name=playback] :where(
+    [name=start-time],
+    .time-input,
+    .start-time,
+    .end-time
+) {
+    pointer-events: none;
+    visibility: hidden;
+}
+div.app .panel[data-short="1"] [name=effects] :where(
+    [name=rsp],
+    [name=rep],
+) {
+    display: none;
+}
+
 div.app .panel [name=controls] {
     display: flex;
     align-items: center;
@@ -791,7 +807,12 @@ div.app .panel [name=controls] {
 div.app .panel [name=controls] :where(.prev, .next) {
     background: transparent;
 }
-div.app .panel [name=controls][data-scroll="0"] :where(.next, .prev) {
+div.app .panel[data-scroll="0"] [name=controls] :where(.next, .prev) {
+    display: none;
+}
+div.app .panel[data-probability="0"] [name="probability"] :where(
+    .left, [name="value"], .right
+) {
     display: none;
 }
 
@@ -848,6 +869,7 @@ div.app .audio-container:empty::before {
 }
 .audio .pin {
     font-size: var(--font-size-buttons);
+    font-weight: bold;
     color: var(--color-audio-text);
 }
 .audio :where(.pin, .probability) {
@@ -1030,7 +1052,7 @@ div.app .audio-container:empty::before {
         grid-row: 3;
     }
     div.app .panel [name=playback] {
-        padding-bottom: 1ch;
+        padding-bottom: 2ch;
     }
     div.app .panel .module-options {
         grid-row: 2;

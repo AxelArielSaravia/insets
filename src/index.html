@@ -23,8 +23,8 @@
 
         <title>inSets</title>
         {{if .Production}}
-            <style>{{template "style" .}}</style>
-            <script type="module">{{template "script" .}}</script>
+            <style>{{block "style" .}}{{end}}</style>
+            <script type="module">{{block "script" .}}{{end}}</script>
         {{else}}
             <link rel="stylesheet" href="src/style.css">
             <script src="src/script.js" defer></script>
@@ -35,6 +35,7 @@
                 name="audio"
                 data-playing="0"
                 data-selected="0"
+                style=""
             >
                 <div name="pin" class="pin button-icon">
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -320,7 +321,7 @@
                                     <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
                                     <path d="M2 19a2 2 0 1 1 4 0v1a2 2 0 1 1-4 0v-4a6 6 0 0 1 12 0v4a2 2 0 1 1-4 0v-1a2 2 0 1 1 4 0"/>
                                 </svg>
-                                <span>Add</span>
+                                <span>add</span>
                             </span>
                         </label>
                     </li>
@@ -381,6 +382,9 @@
                     class="panel"
                     data-display="0"
                     data-playing="0"
+                    data-scroll="0"
+                    data-probability="0"
+                    data-short="0"
                 >
                     <h3 class="title" name="title" id="p-title"></h3>
                     <div class="module-playback">
@@ -436,10 +440,7 @@
                                 id="p-current-text"
                             ></p>
                         </div>
-                        <div name="controls"
-                            id="p-controls"
-                            data-scroll="0"
-                        >
+                        <div name="controls">
                             <button name="prev"
                                 class="prev button-icon"
                                 type="button"
@@ -864,7 +865,7 @@
                                         class="hidde-interactive"
                                     >
                                     <span>Max elements</span>
-                                    <span id="c-max-elements">15</span>
+                                    <span id="c-max-elements">5</span>
                                     <svg xmlns="http://www.w3.org/2000/svg"
                                         width="24" height="24"
                                         viewBox="0 0 24 24"
@@ -928,6 +929,7 @@
                                         name="elements-radio"
                                         value="6"
                                         class="hidde-interactive"
+                                        checked
                                     >
                                     <span>6</span>
                                 </label>
@@ -1000,7 +1002,6 @@
                                         name="elements-radio"
                                         value="15"
                                         class="hidde-interactive"
-                                        checked
                                     >
                                     <span>15</span>
                                 </label>
@@ -1889,60 +1890,6 @@
                                     </button>
                                 </menu>
                             </div>
-                        </details>
-                        <details class="fades"
-                            title="Change the fadeIn and fadeOut values for all audios"
-                        >
-                            <summary>
-                                <h3>Fades</h3>
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    width="24" height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="icon lucide-triangle"
-                                >
-                                    <path d="M13.73 4a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                                </svg>
-                            </summary>
-                            <div class="general-button">
-                                <button name="fades-reset">reset</button>
-                            </div>
-                            <article>
-                                <h4>fadein</h4>
-                                <div id="c-fadein" class="range">
-                                    <input name="fadein"
-                                        type="range"
-                                        min="0"
-                                        max="8"
-                                        value="2"
-                                        step="1"
-                                    >
-                                    <span class="text">
-                                        <span name="value">100</span>
-                                        <span>ms</span>
-                                    </span>
-                                </div>
-                            </article>
-                            <article>
-                                <h4>fadeout</h4>
-                                <div id="c-fadeout" class="range">
-                                    <input name="fadeout"
-                                        type="range"
-                                        min="0"
-                                        max="8"
-                                        value="5"
-                                        step="1"
-                                    >
-                                    <span class="text">
-                                        <span name="value">160</span>
-                                        <span>ms</span>
-                                    </span>
-                                </div>
-                            </article>
                         </details>
                         <details class="delay"
                             title="Change the delay configurations"

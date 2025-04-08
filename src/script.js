@@ -1,5 +1,5 @@
 "use strict";
-//do not change this without check the ArrayTypes
+//do not change this without check all ArrayTypes and Arrays in the app
 const AUDIOELEMENTS_MAX = 128;
 const FREE_TIME = 5000; //ms
 
@@ -12,7 +12,6 @@ const AUDIO_EVENT_MIN_VALUE = 1;
 const LIMIT_MIN = 0;
 const LIMIT_DELAY_FEEDBACKMAX = 17;
 const LIMIT_DELAY_TIMEMAX = 49;
-const LIMIT_FADES_MAX = 8;
 const LIMIT_FILTER_FREQMAX = 248;
 const LIMIT_FILTER_QMAX = 36;
 const LIMIT_FILTER_EFFECTS = 4;
@@ -30,10 +29,6 @@ const DEFAULT_DELAY_FEEDBACKMAX = 16;
 const DEFAULT_DELAY_FEEDBACKMIN = 4;
 const DEFAULT_DELAY_TIMEMAX = 39;
 const DEFAULT_DELAY_TIMEMIN = 3;
-const DEFAULT_FADEIN = 2;
-const DEFAULT_FADEOUT = 5;
-const DEFAULT_FADEIN_SEC = 0.1;
-const DEFAULT_FADEOUT_SEC = 0.16;
 const DEFAULT_FILTER_FREQMAX = 240;
 const DEFAULT_FILTER_FREQMIN = 40;
 const DEFAULT_FILTER_QMAX = 36;
@@ -55,24 +50,22 @@ const DEFAULT_TIMEINTERVAL_MAX = 50;
 const DEFAULT_TIMEINTERVAL_MIN = 8;
 //DEFAULT_VOLUME / 10 -> 1 100%
 const DEFAULT_VOLUME = 10;
+const DEFAULT_SETEVENTS_MAX = 5;
+
+const FADEIN = 2; //20 miliesconds
+const FADEOUT = 2;
 
 const ANIMATION_ALERT = {
     keyframes: [{color: "red"}],
     timing: {
         duration: 300,
         iterations: 3,
-    }
-};
-const ANIMATION_SELECT = {
-    keyframes: [{"--color-audio-text": "var(--color-audio-select)"}],
-    timing: {
-        duration: 800,
-        iterations: 1,
-        delay: 0
+        delay: 0,
+        composite: "replace",
     }
 };
 
-const STARTEDID_MAX = Number.MAX_SAFE_INTEGER;
+const CSS_ANIMATION_SELECT = "--color-audio-text:var(--color-audio-select)";
 
 const READER = new FileReader();
 
@@ -83,8 +76,6 @@ const STORAGE_DELAY_TIMEMAX = "inset.d.tmax";
 const STORAGE_DELAY_TIMEMIN = "inset.d.tmin";
 const STORAGE_DELAY_FEEDBACKMAX = "inset.d.fmax";
 const STORAGE_DELAY_FEEDBACKMIN = "inset.d.fmin";
-const STORAGE_FADEOUT = "inset.fout";
-const STORAGE_FADEIN = "inset.fin";
 const STORAGE_FILTER_DISABLE = "inset.f.disabled";
 const STORAGE_FILTER_FREQMAX = "inset.f.fmax";
 const STORAGE_FILTER_FREQMIN = "inset.f.fmin";
@@ -104,6 +95,7 @@ const STORAGE_PANNER_ZMIN = "inset.p.zmin";
 const STORAGE_PBRATE_DISABLE = "inset.pbr.disabled";
 const STORAGE_PBRATE_MAX = "inset.pbr.max";
 const STORAGE_PBRATE_MIN = "inset.pbr.min";
+const STORAGE_SETEVENTS_MAX = "inset.set.max";
 const STORAGE_THEME = "inset.theme";
 const STORAGE_TIME_MAX = "inset.t.max";
 const STORAGE_TIME_MIN = "inset.t.min";
@@ -117,8 +109,6 @@ const StorageKeys = [
     STORAGE_DELAY_TIMEMIN,
     STORAGE_DELAY_FEEDBACKMAX,
     STORAGE_DELAY_FEEDBACKMIN,
-    STORAGE_FADEOUT,
-    STORAGE_FADEIN,
     STORAGE_FILTER_DISABLE,
     STORAGE_FILTER_FREQMAX,
     STORAGE_FILTER_FREQMIN,
@@ -138,6 +128,7 @@ const StorageKeys = [
     STORAGE_PBRATE_DISABLE,
     STORAGE_PBRATE_MAX,
     STORAGE_PBRATE_MIN,
+    STORAGE_SETEVENTS_MAX,
     STORAGE_THEME,
     STORAGE_TIME_MAX,
     STORAGE_TIME_MIN,
@@ -149,7 +140,7 @@ const EVENTS_MAX_VALUE = 80;
 const EVENTS_MIN_VALUE = 0;
 const SetEvents = {
     cap: CARDINAL_MAX + 1,
-    max: CARDINAL_MAX,
+    max: DEFAULT_SETEVENTS_MAX,
     len: 1,
     buf: (function () {
         var a = new Uint8Array(CARDINAL_MAX + 1);
@@ -165,10 +156,6 @@ let DelayTimemax = DEFAULT_DELAY_TIMEMAX;
 let DelayTimemin = DEFAULT_DELAY_TIMEMIN;
 let DelayFeedbackmax = DEFAULT_DELAY_FEEDBACKMAX;
 let DelayFeedbackmin = DEFAULT_DELAY_FEEDBACKMIN;
-let FadeIn = DEFAULT_FADEIN;
-let FadeOut = DEFAULT_FADEOUT;
-let FadeInSec = DEFAULT_FADEIN_SEC;
-let FadeOutSec = DEFAULT_FADEOUT_SEC;
 let FilterAreAllDisable = DEFAULT_AREALLDISABLE;
 let FilterFreqmax = DEFAULT_FILTER_FREQMAX;
 let FilterFreqmin = DEFAULT_FILTER_FREQMIN;
@@ -198,160 +185,50 @@ let TimeTemporalmax = DEFAULT_TIMEINTERVAL_MAX;
 let TimeTemporalmin = DEFAULT_TIMEINTERVAL_MIN;
 
 let reduceMotion = false;
-let play = false;
+
+//400 miliseconds
+const ANIMATION_DURATION = 40;
+let animation = false;
+let animationEnd = 0;
+
 let context = null;
+
 let Started = false;
-let StartedId = 0;
-
-const startedIdNext = function () {
-    if (StartedId === STARTEDID_MAX) {
-        StartedId = 0;
-    } else {
-        StartedId += 1;
-    }
-    return StartedId;
-};
-
-let AudioSelectedPrevIdx = -1;
-let AudioSelectedIdx = -1;
 
 let AudioEventsSum = 0;
 
-const SelectedAudios = {
-    cap: AUDIOELEMENTS_MAX,
-    len: 0,
-    buf: new Uint8Array(AUDIOELEMENTS_MAX),
-    all: false,
+/**NEVERT, EVER, CHANGE THIS*/
+const EMPTY_AUDIO = {
+    html: undefined,
+    source: undefined,
+    events: 1,
+    playing: false,
+    remove: false,
+    volume: 0,
+    duration: 0,
+    endPoint: 0,
+    endTime: 0,
+    startPoint: 0,
+    startTime: 0,
+    delayDisabled: false,
+    filterDisabled: false,
+    pannerDisabled: false,
+    pbrateDisabled: false,
+    rspDisabled: false,
+    repDisabled: false,
+    pbrate: 1,
+    fadeoutRunning: false,
+    fadeoutStart: 0,
+    input: undefined,
+    output: undefined,
+    filter: undefined,
+    panner: undefined,
+    delay: undefined,
+    delayfeedback: undefined,
+    delaygain: undefined
 };
 
-const ZombieList = {
-    /**@type{Array<AudioState>}*/
-    buf: [],
-    len: 0,
-    seen: 0,
-    available() {
-        return (ZombieList.len > 0 && ZombieList.len > ZombieList.seen);
-    },
-    /**@type{(audio: AudioState) => undefined}*/
-    push(audio) {
-        ZombieList.buf.push(audio);
-        ZombieList.len += 1;
-    },
-    /**@type{(i: number) => AudioState | undefined}*/
-    revive(i) {
-        if (ZombieList.len === 0) {
-            return;
-        }
-        assert(0 <= i && i < ZombieList.len, "ERROR: index out of range");
-
-        let z = ZombieList.buf[i];
-        if (i < ZombieList.len-1) {
-            ZombieList.buf.copyWithin(i, i+1, ZombieList.len);
-        }
-
-        ZombieList.buf.length -= 1;
-        ZombieList.len -= 1;
-        return z;
-    },
-    indexOf(html) {
-        if (ZombieList.len === 0) {
-            return -1;
-        }
-        for (let i = 0; i < ZombieList.len; i += 1) {
-            if (ZombieList.buf[i].html === html) {
-                return i;
-            }
-        }
-        return -1;
-    },
-    see() {
-        if (ZombieList.len === 0 || ZombieList.len === ZombieList.seen) {
-            return;
-        }
-        const z = ZombieList.buf[ZombieList.seen];
-        ZombieList.seen += 1;
-        return z;
-    },
-    /**@type{() => undefined}*/
-    free() {
-        if (ZombieList.len > 0) {
-            ZombieList.buf.length = 0;
-            ZombieList.len = 0;
-        }
-    }
-}
-
-const AudioList = {
-    /**@type{Array<AudioState>}*/
-    buf: [],
-    len: 0,
-    /**@type{(audio: AudioState) => undefined}*/
-    push(audio) {
-        AudioList.buf.push(audio);
-        AudioList.len += 1;
-    },
-    /**@type{(i: number) => AudioState | undefined}*/
-    get(i) {
-        if (i < 0 || i >= AudioList.len) {
-            return undefined;
-        }
-        return AudioList.buf[i];
-    },
-    /**@type{(audio: AudioState) => undefined}*/
-    cleanAudio(audio) {
-        //set defaults
-        audio.events = 1;
-        audio.playing = false;
-        audio.volume = DEFAULT_VOLUME;
-        audio.startPoint = 0;
-        audio.startTime = 0;
-        audio.delayDisabled = DelayAreAllDisable;
-        audio.filterDisabled = FilterAreAllDisable;
-        audio.pannerDisabled = PannerAreAllDisable;
-        audio.pbrateDisabled = PbRateAreAllDisable;
-        audio.rspDisabled = CutRSPAreAllDisable;
-        audio.repDisabled = CutREPAreAllDisable;
-        audio.pbrate = 1;
-
-        //clean
-        //audio.html.removeEventListener("timeupdate", AudioOntimeupdate);
-        audio.html.removeEventListener("ended", AudioOnended);
-        URL.revokeObjectURL(audio.html.src);
-    },
-    /**@type{(i: number) => boolean}*/
-    makeZombie(i) {
-        assert(0 <= i && i < AudioList.len, "ERROR: index out of range");
-
-        let audio = AudioList.buf[i];
-        if (i < AudioList.len-1) {
-            const buf = AudioList.buf;
-            for (let j = i; j < AudioList.len-1; j += 1) {
-                buf[j] = buf[j+1];
-                buf[j].html._index = j;
-            }
-            //AudioList.buf.copyWithin(i, i+1, AudioList.len);
-        }
-        AudioList.buf.length -= 1;
-        AudioList.len -= 1;
-
-        audio.html._zombie = true;
-
-        AudioList.cleanAudio(audio);
-        ZombieList.push(audio);
-        return true;
-    }
-};
-
-let timeoutFree = undefined;
-const timeoutFreeFn = function () {
-    if (timeoutFree !== undefined) {
-        ZombieList.free();
-        HtmlAudioZombies.replaceChildren();
-        timeoutFree = undefined;
-    }
-};
-
-//UTILS
+let AudioPanelIdx = -1;
 
 /**
  * if expression is false throw an error
@@ -364,12 +241,6 @@ const assert = function (expression, msg) {
     }
 };
 
-/**
- * @type {(min: number, max: number) => number}*/
-const random = function (min, max) {
-    return Math.trunc(Math.random() * (max - min + 1) + min);
-};
-
 //Html Elements
 
 const HtmlAudioZombies = document.createDocumentFragment();
@@ -379,7 +250,7 @@ const HtmlAudioElementTemplate = (function () {
     /**@type{HTMLTemplateElement}*/
     const t = document.getElementById("t-audio-element");
     assert(t !== null, "#t-audio-element is not found");
-    return t.content;
+    return t.content.firstElementChild;
 }());
 
 const HtmlApp = document.getElementById("app");
@@ -451,9 +322,6 @@ assert(HtmlPStartPointBar !== null, "#p-start-point-bar is not found");
 const HtmlPEndPointBar = document.getElementById("p-end-point-bar");
 assert(HtmlPEndPointBar !== null, "#p-end-point-bar is not found");
 
-const HtmlPControls = document.getElementById("p-controls");
-assert(HtmlPControls !== null, "#p-controls is not found");
-
 const HtmlCSetDetails = document.getElementById("c-set-details");
 assert(HtmlCSetDetails !== null, "#c-set-details is not found");
 
@@ -480,12 +348,6 @@ assert(HtmlCTimemax !== null, "#c-time-max is not found");
 const HtmlCTimemaxMM = HtmlCTimemax.children["mm"].children["value"];
 const HtmlCTimemaxSS = HtmlCTimemax.children["ss"].children["value"];
 const HtmlCTimemaxMS = HtmlCTimemax.children["ms"].children["value"];
-
-const HtmlCFadein = document.getElementById("c-fadein");
-assert(HtmlCFadein !== null, "#c-fadein is not found");
-
-const HtmlCFadeout = document.getElementById("c-fadeout");
-assert(HtmlCFadeout !== null, "#c-fadeout is not found");
 
 const HtmlCDelayDA = document.getElementById("c-delay-da");
 assert(HtmlCDelayDA !== null, "#c-delay-da is not found");
@@ -555,6 +417,183 @@ assert(HtmlCRSPDA !== null, "#c-rsp-da is not found");
 
 const HtmlCREPDA = document.getElementById("c-rep-da");
 assert(HtmlCREPDA !== null, "#c-rep-da is not found");
+
+const AudiosSelected = {
+    cap: AUDIOELEMENTS_MAX,
+    len: 0,
+    buf: new Uint8Array(AUDIOELEMENTS_MAX),
+    all: false,
+};
+
+const Zombies = {
+    /**@type{Array<AudioState>}*/
+    buf: Array(AUDIOELEMENTS_MAX).fill(EMPTY_AUDIO),
+    len: 0,
+    observed: 0,
+    available() {
+        return (Zombies.len > 0 && Zombies.len > Zombies.observed);
+    },
+    /**@type{(audio: AudioState) => undefined}*/
+    push(audio) {
+        Zombies.buf[Zombies.len] = audio;
+        Zombies.len += 1;
+    },
+    /**@type{(i: number) => AudioState | undefined}*/
+    revive(i) {
+        if (Zombies.len === 0) {
+            return;
+        }
+        assert(0 <= i && i < Zombies.len, "ERROR: index out of range");
+
+        let z = Zombies.buf[i];
+        if (i < Zombies.len-1) {
+            Zombies.buf.copyWithin(i, i+1, Zombies.len);
+        }
+
+        Zombies.buf[Zombies.len-1] = EMPTY_AUDIO;
+        Zombies.len -= 1;
+        return z;
+    },
+    indexFromHTML(html) {
+        if (Zombies.len === 0) {
+            return -1;
+        }
+        for (let i = 0; i < Zombies.len; i += 1) {
+            if (Zombies.buf[i].html === html) {
+                return i;
+            }
+        }
+        return -1;
+    },
+    /**@type{() => AudioState | undefined}*/
+    observe() {
+        if (Zombies.len === 0 || Zombies.len === Zombies.observed) {
+            return;
+        }
+        const z = Zombies.buf[Zombies.observed];
+        Zombies.observed += 1;
+        return z;
+    },
+    /**@type{() => undefined}*/
+    free() {
+        if (Zombies.len > 0) {
+            Zombies.buf.fill(EMPTY_AUDIO, 0, Zombies.len);
+            Zombies.len = 0;
+        }
+    }
+};
+
+const Audios = {
+    /**@type{Array<AudioState>}*/
+    buf: Array(AUDIOELEMENTS_MAX).fill(EMPTY_AUDIO),
+    len: 0,
+    /**@type{(audio: AudioState) => undefined}*/
+    push(audio) {
+        Audios.buf[Audios.len] = audio;
+        Audios.len += 1;
+        assert(Audios.len <= AUDIOELEMENTS_MAX);
+    },
+    /**@type{(i: number) => AudioState | undefined}*/
+    get(i) {
+        assert(0 <= i && i < Audios.len, "ERROR: index out of Audios range")
+        return Audios.buf[i];
+    },
+    /**@type{(audio: AudioState) => undefined}*/
+    cleanAudio(audio) {
+        //set defaults
+        audio.events = 1;
+        audio.playing = false;
+        audio.fadeoutRunning = false;
+        audio.remove = false;
+        audio.volume = DEFAULT_VOLUME;
+        audio.startPoint = 0;
+        audio.startTime = 0;
+        audio.delayDisabled = DelayAreAllDisable;
+        audio.filterDisabled = FilterAreAllDisable;
+        audio.pannerDisabled = PannerAreAllDisable;
+        audio.pbrateDisabled = PbRateAreAllDisable;
+        audio.rspDisabled = CutRSPAreAllDisable;
+        audio.repDisabled = CutREPAreAllDisable;
+        audio.pbrate = 1;
+
+        //clean
+        audio.html.removeEventListener("ended", AudioOnended);
+        URL.revokeObjectURL(audio.html.src);
+    },
+    /**@type{(i: number) => AudioState}*/
+    remove(i) {
+        assert(Audios.len > 0, "ERROR: You call makeZombie when Audios is 0")
+        assert(0 <= i && i < Audios.len, "ERROR: index out of range");
+
+        let audio = Audios.buf[i];
+        if (i < Audios.len-1) {
+            Audios.buf.copyWithin(i, i+1, Audios.len);
+        }
+        Audios.buf[Audios.len-1] = EMPTY_AUDIO;
+        Audios.len -= 1;
+        return audio;
+    },
+    clear() {
+        Audios.buf.fill(EMPTY_AUDIO, 0, Audios.len);
+        Audios.len = 0;
+    }
+};
+
+const AudiosPlaying = {
+    buf: Array(AUDIOELEMENTS_MAX).fill(EMPTY_AUDIO),
+    html: Array(AUDIOELEMENTS_MAX).fill(HtmlAudioElementTemplate),
+    len: 0,
+    push(audio, HtmlAudioElement) {
+        AudiosPlaying.buf[AudiosPlaying.len] = audio;
+        AudiosPlaying.html[AudiosPlaying.len] = HtmlAudioElement;
+        AudiosPlaying.len += 1;
+    },
+    remove(i) {
+        if (i < 0 || i >= AudiosPlaying.len) {
+            return false;
+        }
+        if (i < AudiosPlaying.len - 1) {
+            AudiosPlaying.buf.copyWithin(i, i+1, AudiosPlaying.len);
+            AudiosPlaying.html.copyWithin(i, i+1, AudiosPlaying.len);
+        }
+        AudiosPlaying.buf[AudiosPlaying.len-1] = EMPTY_AUDIO;
+        AudiosPlaying.html[AudiosPlaying.len-1] = HtmlAudioElementTemplate;
+        AudiosPlaying.len -= 1;
+        return true;
+    },
+    removeAudio(audio) {
+        if (AudiosPlaying.len === 0) {
+            return false;
+        }
+        let i = AudiosPlaying.buf.lastIndexOf(audio, AudiosPlaying.len-1);
+        if (i === -1) {
+            return false;
+        }
+        if (i < AudiosPlaying.len - 1) {
+            AudiosPlaying.buf.copyWithin(i, i+1, AudiosPlaying.len);
+            AudiosPlaying.html.copyWithin(i, i+1, AudiosPlaying.len);
+        }
+
+        AudiosPlaying.buf[AudiosPlaying.len-1] = EMPTY_AUDIO;
+        AudiosPlaying.html[AudiosPlaying.len-1] = HtmlAudioElementTemplate;
+        AudiosPlaying.len -= 1;
+        return true;
+    },
+};
+
+let timeoutFree = undefined;
+const timeoutFreeFn = function () {
+    if (timeoutFree !== undefined) {
+        Zombies.free();
+        HtmlAudioZombies.replaceChildren();
+        timeoutFree = undefined;
+    }
+};
+
+/**@type{(min: number, max: number) => number}*/
+const random = function (min, max) {
+    return Math.trunc(Math.random() * (max - min + 1) + min);
+};
 
 const defaultSets = function () {
     for (let i = 1; i < SetEvents.len; i += 1) {
@@ -649,26 +688,31 @@ const getPanner = function (x) {
     return x - 50;
 };
 
-/**
- * range to fade value
- * @type{(x: number) => number}*/
-const getFade = function (x) {
-    assert(LIMIT_MIN <= x && x <= LIMIT_PANNER_MAX,
-        "fade out of range"
-    );
-    if (x !== 0) {
-        x = (20 * x) + 60;
-    }
-    return x;
-};
-
-
 /** @type{(n: number) => string}*/
 const timeIntervalFormat = function (n) {
     if (n < 10) {
         return "0" + String(n);
     }
     return String(n);
+};
+
+/**
+@type {(val: number) => string} */
+const durationToTime = function (val) {
+    val = Math.trunc(val);
+    const sec = val % 60;
+    const min = Math.trunc(val / 60) % 60;
+    const hr = Math.trunc(val / 3600);
+    let str = (hr > 0 ? hr + ":" : "");
+    str += timeIntervalFormat(min) + ":" + timeIntervalFormat(sec);
+    return str;
+};
+
+/**
+ * val is in seconds
+@type {(val: number) => string} */
+const durationToShortTime = function (val) {
+    return "00."+Math.trunc(val*10);
 };
 
 // Audio manipulation functions
@@ -678,7 +722,7 @@ const timeIntervalFormat = function (n) {
     HtmlAudio: HTMLAudioElement,
     source: MediaElementAudioSourceNode
 ) => AudioState}*/
-const audioCreateState = function (HtmlAudio, source) {
+const audioCreate = function (HtmlAudio, source) {
     const panner = context.createPanner();
     panner.coneInnerAngle = 360;
     panner.coneOuterAngle = 0;
@@ -721,6 +765,7 @@ const audioCreateState = function (HtmlAudio, source) {
         source: source,
         events: 1,
         playing: false,
+        remove: false,
         volume: DEFAULT_VOLUME,
         duration: HtmlAudio.duration, //seconds
         endPoint: HtmlAudio.duration, //seconds
@@ -734,6 +779,8 @@ const audioCreateState = function (HtmlAudio, source) {
         rspDisabled: CutRSPAreAllDisable,
         repDisabled: CutREPAreAllDisable,
         pbrate: 1,
+        fadeoutRunning: false,
+        fadeoutStart: 0,
         input: input,
         output: output,
         filter: filter,
@@ -756,9 +803,9 @@ const audioRandomizeConnections = function (audio) {
         let x = getPanner(random(PannerYmin, PannerYmax)) / 10;
         let y = getPanner(random(PannerXmin, PannerXmax)) / 10;
         let z = -(random(PannerZmin, PannerZmax) / 10);
-        audio.panner.positionX.value = x;
-        audio.panner.positionY.value = y;
-        audio.panner.positionY.value = z;
+        audio.panner.positionX.setValueAtTime(x, context.currentTime);
+        audio.panner.positionY.setValueAtTime(y, context.currentTime);
+        audio.panner.positionZ.setValueAtTime(z, context.currentTime);
         prev.connect(audio.panner);
         prev = audio.panner;
     }
@@ -792,9 +839,9 @@ const audioRandomizeConnections = function (audio) {
             q = getFilterQ(random(FilterQmin, FilterQmax));
         }
         let freq = getFilterFreq(random(FilterFreqmin, FilterFreqmax));
-        audio.filter.frequency.value = freq;
         audio.filter.type = type;
-        audio.filter.Q.value = q;
+        audio.filter.frequency.setValueAtTime(freq, context.currentTime);
+        audio.filter.Q.setValueAtTime(q, context.currentTime);
         prev.connect(audio.filter);
         prev = audio.filter;
     }
@@ -808,7 +855,7 @@ const audioRandomizeConnections = function (audio) {
             delaytime,
             context.currentTime + delaytime
         );
-        audio.delayfeedback.gain.value = feedback;
+        audio.delayfeedback.gain.setValueAtTime(feedback, context.currentTime);
         prev.connect(audio.delay);
         prev.connect(audio.delaygain);
         prev = audio.delaygain;
@@ -816,77 +863,285 @@ const audioRandomizeConnections = function (audio) {
     prev.connect(audio.output);
 };
 
-const AudiosPlaying = {
-    raf: undefined,
-    buf: [],
-    len: 0,
-    push(audio) {
-        AudiosPlaying.buf.push(audio);
-        AudiosPlaying.len += 1;
+const RequestFadeout = {
+    request: false,
+    endTime: 0, //seconds
+    /**@type{"replay" | "pause" | "clear"}*/
+    action: "replay",
+    clear() {
+        RequestFadeout.request = false;
     },
-    removeByIndex(i) {
-        if (i < 0 || i >= AudiosPlaying.len) {
-            return;
+    /**@type{(AudioList: {buf: Array<AudioState>, len: number}) => undefined}*/
+    fromAudioList(AudioList) {
+        const now = context.currentTime;
+        for (let i = 0; i < AudioList.len; i += 1) {
+            const audio = AudioList.buf[i];
+            if (audio.playing && !audio.fadeoutRunning) {
+                audioFadeout(audio, now);
+            }
         }
-        AudiosPlaying.buf.splice(i, 1);
-        AudiosPlaying.len -= 1;
     },
-    removeAudio(audio) {
-        if (AudiosPlaying.len === 0) {
-            return false;
+    /**@type{(AudioList: {buf: Uint8Array<Number>, len: number}) => undefined}*/
+    fromAudiosSelected(AudiosSelected) {
+        const now = context.currentTime;
+        for (let i = 0; i < AudiosSelected.len; i += 1) {
+            const j = AudiosSelected.buf[i];
+            const audio = Audios.get(j);
+            if (audio.playing && !audio.fadeoutRunning) {
+                audioFadeout(audio, now);
+            }
         }
-        let i = AudiosPlaying.buf.indexOf(audio);
-        if (i === -1) {
-            return false;
-        }
-        AudiosPlaying.buf.splice(i, 1);
-        AudiosPlaying.len -= 1;
-        return true;
     },
+    toReplay(AudiosSelected) {
+        RequestFadeout.request = true;
+        RequestFadeout.endTime = (
+            Math.trunc(context.currentTime * 100)
+            + FADEOUT
+        ) / 100;
+        RequestFadeout.action = "replay";
+
+        if (AudiosSelected.all) {
+            RequestFadeout.fromAudioList(Audios);
+        } else {
+            RequestFadeout.fromAudiosSelected(AudiosSelected);
+        }
+    },
+    toPause(AudiosPlaying) {
+        RequestFadeout.request = true;
+        RequestFadeout.endTime = (
+            Math.trunc(context.currentTime * 100)
+            + FADEOUT
+        ) / 100;
+        RequestFadeout.action = "pause";
+        RequestFadeout.fromAudioList(AudiosPlaying);
+    },
+    toClear(AudiosPlaying) {
+        RequestFadeout.request = true;
+        RequestFadeout.endTime = (
+            Math.trunc(context.currentTime * 100)
+            + FADEOUT
+        ) / 100;
+        RequestFadeout.action = "clear";
+        RequestFadeout.fromAudioList(AudiosPlaying);
+    }
 };
 
-const currentTimeChange = function () {
+/**
+ * @prop{AudioState} audio
+ * @prop{number} now seconds
+ * @return {undefined}
+ */
+const audioFadeout = function (audio, now) {
+    audio.fadeoutRunning = true;
+    audio.output.gain.cancelScheduledValues(now);
+    audio.output.gain.setValueAtTime(audio.output.gain.value, now);
+    audio.output.gain.linearRampToValueAtTime(
+        0,
+        (
+            Math.trunc(now * 100)
+            + (
+                Math.trunc(audio.endPoint * 100)
+                - Math.trunc(audio.html.currentTime * 100)
+            )
+        ) / 100
+    );
+};
+
+let raf = undefined;
+const currentTimeOnChange = function () {
     if (AudiosPlaying.len === 0) {
-        cancelAnimationFrame(AudiosPlaying.raf);
+        cancelAnimationFrame(raf);
         return;
     }
 
-    let i = 0;
-    while (i < AudiosPlaying.len) {
-        let audio = AudiosPlaying.buf[i];
-        let j = audio.html._index;
-        if (audio.html.paused || audio.html.ended) {
-            AudiosPlaying.removeByIndex(i);
-            i += 1;
-            continue;
-        }
-        if (audio.endPoint <= audio.html.currentTime) {
-            AudiosPlaying.removeByIndex(i);
-            HtmlAppContainer.children[j].setAttribute("data-playing", "0");
-            audioAction(j, "pause");
-        } else {
-            if (AudioSelectedIdx === j) {
-                updateHtmlPanelCurrentTime(
-                    audio.html.currentTime * 100 / audio.duration,
-                    audio.html.currentTime
+    const now = context.currentTime;
+
+    if (RequestFadeout.request && now >= RequestFadeout.endTime) {
+        RequestFadeout.clear();
+        if (RequestFadeout.action === "replay") {
+            audiosSelectedPlay(AudiosSelected);
+
+        //The audios must Pause or will be Clear
+        } else if (RequestFadeout.action === "pause") {
+            cancelAnimationFrame(raf);
+            pauseAudioPanel(-1);
+            while (AudiosPlaying.len - 1 > -1) {
+                const HtmlAudioElement = AudiosPlaying.html[AudiosPlaying.len - 1];
+                if (animation) {
+                    HtmlAudioElement.setAttribute("style", "");
+                }
+
+                pause(
+                    AudiosPlaying.buf[AudiosPlaying.len - 1],
+                    HtmlAudioElement
                 );
             }
-            i += 1;
+            if (animation) {
+                if (AudioPanelIdx > -1) {
+                    HtmlPTitle.setAttribute("style", "");
+                }
+                animation = false;
+            }
+            return; //END
+        } else if (RequestFadeout.action === "clear") {
+            cancelAnimationFrame(raf);
+            while (AudiosPlaying.len - 1 > -1) {
+                AudiosPlaying.html[AudiosPlaying.len - 1].setAttribute("data-playing", "0");
+                audioPause(AudiosPlaying.buf[AudiosPlaying.len - 1]);
+                AudiosPlaying.remove(AudiosPlaying.len - 1);
+            }
+            clear();
+            if (animation && now >= animationEnd) {
+                if (AudioPanelIdx > -1) {
+                    HtmlPTitle.setAttribute("style", "");
+                }
+                animation = false;
+            }
+            return; //END
         }
     }
 
-    AudiosPlaying.raf = requestAnimationFrame(currentTimeChange);
+    let selectedAudio;
+    if (AudioPanelIdx > -1) {
+        selectedAudio = Audios.get(AudioPanelIdx);
+    }
+
+    let i = AudiosPlaying.len-1;
+    while (0 <= i) {
+        let audio = AudiosPlaying.buf[i];
+        let HtmlAudioElement = AudiosPlaying.html[i];
+        if (!audio.playing || audio.html.paused || audio.html.ended) {
+            HtmlAudioElement.setAttribute("data-playing", "0");
+            audio.fadeoutRunning = false;
+            AudiosPlaying.remove(i);
+
+        } else if (audio.endPoint <= audio.html.currentTime) {
+            if (audio.remove) {
+                remove(audio, HtmlAudioElement);
+            } else {
+                if (AudioPanelIdx > -1) {
+                    const selectedAudio = Audios.get(AudioPanelIdx);
+                    if (selectedAudio === audio) {
+                        pauseAudioPanel(-1);
+                    }
+                }
+                pause(audio, HtmlAudioElement);
+            }
+        } else {
+
+            if (animation
+                && now >= animationEnd
+                && HtmlAudioElement.getAttribute("style") !== ""
+            ) {
+                HtmlAudioElement.setAttribute("style", "");
+            }
+
+            if (AudioPanelIdx > -1 && audio === selectedAudio) {
+                updateHtmlPanelCurrentTime(
+                    audio.html.currentTime * 100 / audio.duration,
+                    audio.html.currentTime,
+                    audio.duration < 1
+                );
+            }
+
+            //Trigger fadeout near endPoint
+            if (!audio.fadeoutRunning
+                && audio.html.currentTime >= audio.fadeoutStart
+            ) {
+                audioFadeout(audio, now);
+            }
+        }
+        i -= 1;
+    }
+    if (animation && now >= animationEnd) {
+        if (AudioPanelIdx > -1) {
+            HtmlPTitle.setAttribute("style", "");
+        }
+        animation = false;
+    }
+
+    if (AudiosPlaying.len === 0) {
+        cancelAnimationFrame(raf);
+    } else {
+        raf = requestAnimationFrame(currentTimeOnChange);
+    }
 };
 
-const audioPlay = function (audio) {
+const remove = function (audio, HtmlAudioElement) {
+    Audios.cleanAudio(audio);
+    Zombies.push(audio);
+
+    //defaults
+    HtmlAudioElement.setAttribute("data-playing", "0");
+    HtmlAudioElement.setAttribute("data-selected", "0");
+    HtmlAudioZombies.appendChild(HtmlAudioElement);
+
+    if (timeoutFree !== undefined) {
+        clearTimeout(timeoutFree)
+    }
+    timeoutFree = setTimeout(timeoutFreeFn,FREE_TIME);
+};
+
+const clear = function () {
+    defaultSets();
+
+    //set Panel
+    if (AudioPanelIdx > -1) {
+        assert(AudioPanelIdx < Audios.len);
+        assert(HtmlAppContainer.childElementCount === Audios.len);
+        HtmlAppContainer.children[AudioPanelIdx].setAttribute("data-selected", "0");
+        AudioPanelIdx = -1;
+        HtmlAppPanel.setAttribute("data-display", "0");
+    }
+
+    for (let i = 0; i < Audios.len; i += 1) {
+        const audio = Audios.get(i);
+        Audios.cleanAudio(audio);
+        Zombies.push(audio);
+    }
+    Audios.clear();
+
+    HtmlAudioZombies.append.apply(
+        HtmlAudioZombies,
+        HtmlAppContainer.children
+    );
+    AudioEventsSum = 0;
+
+
+    if (timeoutFree !== undefined) {
+        clearTimeout(timeoutFree);
+    }
+    timeoutFree = setTimeout(timeoutFreeFn, FREE_TIME);
+};
+
+/**@type{(audio: AudioState, HtmlAudioElement: HTMLElement) => undefined}*/
+const play = function (audio, HtmlAudioElement) {
+    HtmlAudioElement.setAttribute("data-playing", "1");
+    //ensure that audioPlay is alway call after an audio Pause
+    /*
+     if (audio.playing) {
+        audio.output.gain.cancelScheduledValues(now);
+        audio.output.gain.setValueAtTime(0, now);
+        audio.html.pause();
+     }
+    */
+
     if (!audio.pbrateDisabled) {
         let pbrate = getPlaybackRate(
             random(PbRatemin, PbRatemax)
         );
         audio.html.playbackRate = pbrate;
+        audio.pbrate = pbrate;
     } else {
         audio.html.playbackRate = 1;
+        audio.pbrate = 1;
     }
+
+    audio.fadeoutRunning = false;
+    audio.fadeoutStart = (
+        Math.trunc(audio.endPoint * 100)
+        - (FADEOUT * audio.pbrate)
+    ) / 100;
 
     //duration is greater than 1 second
     if (audio.duration >= 1) {
@@ -897,14 +1152,7 @@ const audioPlay = function (audio) {
             let d = Math.trunc(audio.duration * 100);
             let p = Math.trunc(rep * 100) - Math.trunc(rsp * 100);
             let min = 50;
-            let max = 0;
-            if (p < 50) {
-                max = min;
-            } else if (p > d) {
-                max = d;
-            } else {
-                max = p;
-            }
+            let max = Math.min(Math.max(min, p), d);
             interval = random(min, max);
         }
         if (!audio.rspDisabled) {
@@ -921,99 +1169,151 @@ const audioPlay = function (audio) {
         }
         audio.startPoint = rsp;
         audio.endPoint = rep;
-        audio.html._endPoint = rep;
     }
+
     audio.html.currentTime = audio.startPoint;
-
     audioRandomizeConnections(audio);
-    audio.output.gain.linearRampToValueAtTime(1,context.currentTime + FadeInSec);
 
-    //return a promise: rejected if playback cannot be started for any reason
-    audio.html.play();
-    audio.playing = true;
+    audioPlay(audio, HtmlAudioElement);
+};
 
-    AudiosPlaying.push(audio)
-    if (!play) {
-        play = true;
-        AudiosPlaying.raf = requestAnimationFrame(currentTimeChange);
+/**@type{(audio: AudioState, HtmlAudioElement: HTMLElement) => undefined}*/
+const pause = function (audio, HtmlAudioElement) {
+    HtmlAudioElement.setAttribute("data-playing", "0");
+    AudiosPlaying.removeAudio(audio);
+    if (AudiosPlaying.len === 0) {
+        cancelAnimationFrame(raf);
+    }
+    audioPause(audio);
+    return true;
+};
+
+/**@type{(i: number, audio: AudioState) => undefined}*/
+const playAudioPanel = function (i, audio) {
+    if (i === AudioPanelIdx) {
+        if (audio.duration >= 1) {
+            HtmlAppPanel.setAttribute("data-playing", "1");
+            updateHtmlPanelRP(
+                audio.startPoint * 100 / audio.duration,
+                audio.endPoint * 100 / audio.duration
+            );
+        }
+        updateHtmlPanelCurrentTime(
+            audio.html.currentTime * 100 / audio.duration,
+            audio.html.currentTime,
+            audio.duration < 1
+        );
     }
 };
+
+const pauseAudioPanel = function (i) {
+    if (AudioPanelIdx > -1) {
+        if (i === -1 || i === AudioPanelIdx) {
+            const selectedAudio = Audios.get(AudioPanelIdx);
+            HtmlAppPanel.setAttribute("data-playing", "0");
+            if (selectedAudio.duration >= 1) {
+                updateHtmlPanelRP(0, 100);
+            }
+            updateHtmlPanelCurrentTime(0, 0, selectedAudio.duration < 1);
+        }
+    }
+};
+
+
+
+const audioPlay = async function (audio, HtmlAudioElement) {
+    //return a promise: rejected if playback cannot be started for any reason
+    try {
+        await audio.html.play();
+        //audio.input.gain.setValueAtTime(1, now);
+        audio.output.gain.setValueAtTime(0, context.currentTime);
+        audio.output.gain.linearRampToValueAtTime(
+            audio.volume / 10,
+            (Math.trunc(context.currentTime * 100) + FADEIN) / 100
+        );
+        audio.html.volume = 1;
+
+        if (!audio.playing) {
+            const otherAudiosPause = (AudiosPlaying.len === 0);
+            AudiosPlaying.push(audio, HtmlAudioElement);
+            audio.playing = true;
+            if (otherAudiosPause) {
+                raf = requestAnimationFrame(currentTimeOnChange);
+            }
+        }
+    } catch (err) {
+        console.error(`Playback error for ${audio.html._name}:`, err);
+        if (audio.playing) {
+            pause(audio, HtmlAudioElement)
+        }
+    }
+
+};
+
 
 const audioPause = function (audio) {
     if (audio.playing) {
-        audio.output.gain.cancelScheduledValues(context.currentTime);
-        /*
-        const fo = getFade(FadeOut) / 1000;
+        const now = context.currentTime;
+        audio.output.gain.cancelScheduledValues(now);
+        audio.output.gain.setValueAtTime(0,now);
 
-        audio.output.gain.linearRampToValueAtTime(
-            0,
-            context.currentTime + fo
-        );
-        */
-        audio.delay.delayTime.cancelScheduledValues(context.currentTime);
-        audio.delay.delayTime.value = 0;
         audio.html.pause();
-        audio.output.gain.value = 0;
+        audio.html.volume = 0;
+
+        audio.delay.delayTime.cancelScheduledValues(now);
+        audio.delay.delayTime.setValueAtTime(0, now);
+
         audio.playing = false;
+        audio.fadeoutRunning = false;
         return true;
     }
     return false;
 };
 
-const audioRemove = function (audio, i) {
-    audioPause(audio);
-    if (!AudioList.makeZombie(i)) {
-        throw Error("ERROR: AudioList.makeZombie");
+const audiosSelectedPlay = function (AudiosSelected) {
+    animation = true;
+    animationEnd = (
+        Math.trunc(context.currentTime * 100)
+        + ANIMATION_DURATION
+    ) / 100;
+
+    if (AudiosSelected.all) {
+        if (AudioPanelIdx !== -1) {
+            HtmlPTitle.setAttribute("style", CSS_ANIMATION_SELECT);
+        }
+        for (let i = 0; i < Audios.len; i += 1) {
+            const HtmlAudioElement = HtmlAppContainer.children[i];
+            const audio = Audios.get(i);
+            HtmlAudioElement.setAttribute("style", CSS_ANIMATION_SELECT);
+            if (audio.fadeoutRunning && audio.playing) {
+                audioPause(audio);
+                audio.playing = true;
+                play(audio, HtmlAudioElement);
+            } else {
+                play(audio, HtmlAudioElement);
+            }
+            playAudioPanel(i, audio);
+        }
+    } else {
+        for (let k = 0; k < AudiosSelected.len; k += 1) {
+            const i = AudiosSelected.buf[k];
+            const audio = Audios.get(i);
+            const HtmlAudioElement = HtmlAppContainer.children[i];
+            HtmlAudioElement.setAttribute("style", CSS_ANIMATION_SELECT);
+            if (AudioPanelIdx === i) {
+                HtmlPTitle.setAttribute("style", CSS_ANIMATION_SELECT);
+            }
+            if (audio.fadeoutRunning && audio.playing) {
+                audioPause(audio);
+                audio.playing = true;
+                play(audio, HtmlAudioElement);
+            } else {
+                play(audio, HtmlAudioElement);
+            }
+            playAudioPanel(i, audio);
+        }
     }
 };
-
-/**@type{(i: number, action: string) => boolean}*/
-const audioAction = function (i, action) {
-    assert(0 <= i && i < AudioList.len, "ERROR: out of range");
-
-    const state = AudioList.get(i);
-    if (state === undefined) {
-        return false;
-    }
-    if ("play" === action) {
-        audioPlay(state);
-        if (i === AudioSelectedIdx) {
-            if (state.duration >= 1) {
-                HtmlAppPanel.setAttribute("data-playing", "1");
-                updateHtmlPanelRP(
-                    state.startPoint * 100 / state.duration,
-                    state.endPoint * 100 / state.duration
-                );
-            }
-            updateHtmlPanelCurrentTime(
-                state.html.currentTime * 100 / state.duration,
-                state.html.currentTime
-            );
-        }
-        return true;
-    } else if ("pause" === action) {
-        audioPause(state);
-        if (i === AudioSelectedIdx) {
-            HtmlAppPanel.setAttribute("data-playing", "0");
-            if (state.duration >= 1) {
-                updateHtmlPanelRP(0, 100);
-            }
-            updateHtmlPanelCurrentTime(0, 0);
-        }
-        AudiosPlaying.removeAudio(state);
-        if (AudiosPlaying.len === 0) {
-            play = false;
-            cancelAnimationFrame(AudiosPlaying.raf);
-        }
-        return true;
-    } else if ("remove" === action) {
-        AudioEventsSum -= state.events;
-        assert(AudioEventsSum > -1, "ERROR: AudioEventsSum is less than 0");
-        audioRemove(state, i);
-        return true;
-    }
-    return false;
-}
 
 /**@type{(e: Event) => undefined}*/
 const AudioOnerror = function (e) {
@@ -1057,39 +1357,13 @@ const updateHtmlAudioProbability = function () {
     }
     for (let i = 0; i < HtmlAppContainer.childElementCount; i += 1) {
         const HtmlAudioElement = HtmlAppContainer.children[i];
-        const AudioState = AudioList.get(i);
+        const AudioState = Audios.get(i);
         HtmlAudioElement.children["probability"].firstElementChild.textContent = (
             (AudioState.events / AudioEventsSum * 100).toFixed(2)
         );
     }
 };
 
-function isMinorThanTen(val) {
-    if (val < 10) {
-        return "0" + String(val);
-    }
-    return String(val);
-}
-/**
-@type {(val: number) => string} */
-function durationToTime(val) {
-    val = Math.floor(val);
-    const sec = val % 60;
-    const min = Math.floor(val / 60) % 60;
-    const hr = Math.floor(val / 3600);
-    let str = (hr > 0 ? hr + ":" : "");
-    str += isMinorThanTen(min) + ":" + isMinorThanTen(sec);
-    return str;
-}
-
-/**
- * val is in seconds
-@type {(val: number) => string} */
-function durationToShortTime(val) {
-    const miliseconds = Math.floor(val * 10) % 10;
-    const sec = Math.floor(val) % 60;
-    return (sec < 10 ? "0" : "") + sec + "." + miliseconds;
-}
 
 /**@type{(startval: number, endval: number) => undefined}*/
 const updateHtmlPanelRP = function (startval, endval) {
@@ -1097,14 +1371,18 @@ const updateHtmlPanelRP = function (startval, endval) {
     HtmlPEndPointBar.setAttribute("style", `--translate:${endval}%`);
 };
 
-/**@type{(pval: number, tval: number) => undefined}*/
-const updateHtmlPanelCurrentTime = function (pval, tval) {
+/**@type{(pval: number, tval: number, isshort: boolean) => undefined}*/
+const updateHtmlPanelCurrentTime = function (pval, tval, isshort) {
     HtmlPCurrentBar.setAttribute("style", `--translate:${pval}%`);
-    HtmlPCurrentText.textContent = durationToTime(tval);
+    if (isshort) {
+        HtmlPCurrentText.textContent = durationToShortTime(tval);
+    } else {
+        HtmlPCurrentText.textContent = durationToTime(tval);
+    }
 };
 
 const verifyHtmlCSets = function () {
-    if (AudioList.len <= SetEvents.max) {
+    if (Audios.len <= SetEvents.max) {
         SetEvents.buf[SetEvents.len] = 1;
 
         const HtmlSet = HtmlCSets.children[SetEvents.len];
@@ -1117,20 +1395,38 @@ const verifyHtmlCSets = function () {
 
 };
 
+const AudioOnended = function (e) {
+    const HtmlAudio = e.currentTarget;
+    for (let i = 0; i < Audios.len; i += 1) {
+        const audio = Audios.buf[i];
+        if (audio.html === HtmlAudio) {
+            if (audio.playing) {
+                pause(audio, HtmlAppContainer.children[i]);
+                pauseAudioPanel(i);
+            }
+        }
+    }
+};
+
 const ZombieAudioOncanplaythrough = function (e) {
     const HtmlAudio = e.currentTarget;
     const HtmlAudioElement = HtmlAudioZombies.children[0];
-    const i = ZombieList.indexOf(HtmlAudio);
+    const i = Zombies.indexFromHTML(HtmlAudio);
     assert(i !== -1, "ERROR: HtmlAudio not found");
-    const state = ZombieList.revive(i);
-    ZombieList.seen -= 1;
 
-    state.duration = HtmlAudio.duration;
-    state.endPoint = HtmlAudio.duration;
-    state.endTime = HtmlAudio.duration;
+    const audio = Zombies.revive(i);
+    Zombies.observed -= 1;
 
-    HtmlAudio._endPoint = HtmlAudio.duration;
-    HtmlAudio._index = AudioList.len;
+    if (Zombies.observed === 0 && Zombies.len > 0) {
+        if (timeoutFree !== undefined) {
+            clearTimeout(timeoutFree);
+        }
+        timeoutFree = setTimeout(timeoutFreeFn, FREE_TIME);
+    }
+
+    audio.duration = HtmlAudio.duration;
+    audio.endPoint = HtmlAudio.duration;
+    audio.endTime = HtmlAudio.duration;
 
     //HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
     HtmlAudio.addEventListener("ended", AudioOnended, true);
@@ -1142,21 +1438,26 @@ const ZombieAudioOncanplaythrough = function (e) {
     HtmlAudioElement._HtmlProbText.textContent = (
         (1 / AudioEventsSum * 100).toFixed(2)
     );
+    HtmlAudioElement.setAttribute("data-playing", "0");
+    HtmlAudioElement.setAttribute("data-selected", "0");
 
-    verifyHtmlCSets();
+
     updateHtmlAudioProbability();
 
-    AudioList.push(state);
+    Audios.push(audio);
     HtmlAppContainer.appendChild(HtmlAudioElement);
 
-    if (AudioSelectedIdx !== -1) {
-        let audioSelected = AudioList.get(AudioSelectedIdx);
+    verifyHtmlCSets();
+
+    if (AudioPanelIdx !== -1) {
+        let audioSelected = Audios.get(AudioPanelIdx);
         //Throw Error
         assert(audioSelected !== undefined);
         updateHtmlPanelProbability(audioSelected.events);
     }
-    if (AudioList.len > 1) {
-        HtmlPControls.setAttribute("data-scroll", "1");
+    if (Audios.len > 1) {
+        HtmlAppPanel.setAttribute("data-scroll", "1");
+        HtmlAppPanel.setAttribute("data-probability", "1");
     }
 };
 
@@ -1165,15 +1466,8 @@ const ZombieAudioOncanplaythrough = function (e) {
 const AudioOncanplaythrough = function (e) {
     const HtmlAudio = e.currentTarget;
     const source = context.createMediaElementSource(HtmlAudio);
-    const state = audioCreateState(HtmlAudio, source);
-    const HtmlAudioElement = (
-        HtmlAudioElementTemplate
-        .cloneNode(true)
-        .firstElementChild
-    );
-
-    HtmlAudio._endPoint = HtmlAudio.duration;
-    HtmlAudio._index = AudioList.len;
+    const audio = audioCreate(HtmlAudio, source);
+    const HtmlAudioElement = HtmlAudioElementTemplate.cloneNode(true);
 
     //HtmlAudio.addEventListener("timeupdate", AudioOntimeupdate, true);
     HtmlAudio.addEventListener("ended", AudioOnended, true);
@@ -1193,67 +1487,34 @@ const AudioOncanplaythrough = function (e) {
         "beforeend",
         (1 / (AudioEventsSum) * 100).toFixed(2)
     );
+    HtmlAudioElement.setAttribute("data-playing", "0");
+    HtmlAudioElement.setAttribute("data-selected", "0");
 
     updateHtmlAudioProbability();
-    verifyHtmlCSets();
 
     HtmlAppContainer.appendChild(HtmlAudioElement);
-    AudioList.push(state);
+    Audios.push(audio);
 
-    if (AudioSelectedIdx !== -1) {
-        let audioSelected = AudioList.get(AudioSelectedIdx);
+    verifyHtmlCSets();
+
+
+    if (AudioPanelIdx !== -1) {
+        let audioSelected = Audios.get(AudioPanelIdx);
         assert(audioSelected !== undefined);
         updateHtmlPanelProbability(audioSelected.events);
     }
-    if (AudioList.len > 1) {
-        HtmlPControls.setAttribute("data-scroll", "1");
+    if (Audios.len > 1) {
+        HtmlAppPanel.setAttribute("data-probability", "1");
+        HtmlAppPanel.setAttribute("data-scroll", "1");
     }
 };
-
-const AudioOntimeupdate = function (e) {
-    const HtmlAudio = e.currentTarget;
-    if (HtmlAudio._zombie) {
-        HtmlAudio.removeEventListener("timeupdate", AudioOntimeupdate);
-        HtmlAudio.removeEventListener("ended", AudioOnended);
-        return;
-    }
-    if (!HtmlAudio.paused && !HtmlAudio.ended) {
-        if(HtmlAudio._endPoint <= HtmlAudio.currentTime) {
-            assert(AudioList.len === HtmlAppContainer.childElementCount);
-            let i = HtmlAudio._index;
-            HtmlAppContainer.children[i].setAttribute("data-playing", "0");
-            audioAction(i, "pause");
-        } else {
-            if (AudioSelectedIdx === HtmlAudio._index) {
-                updateHtmlPanelCurrentTime(
-                    HtmlAudio.currentTime * 100 / HtmlAudio.duration,
-                    HtmlAudio.currentTime
-                );
-            }
-        }
-    }
-};
-
-const AudioOnended = function (e) {
-    const HtmlAudio = e.currentTarget;
-    if (HtmlAudio._zombie) {
-        //HtmlAudio.removeEventListener("timeupdate", AudioOntimeupdate);
-        HtmlAudio.removeEventListener("ended", AudioOnended);
-        return;
-    }
-    if (HtmlAudio.paused || HtmlAudio.ended) {
-        let i = HtmlAudio._index;
-        HtmlAppContainer.children[i].setAttribute("data-playing", "0");
-        audioAction(i, "pause")
-    }
-}
 
 /**
  * @type {(files: FileList) => undefined}*/
 const addFiles = function (files) {
-    if (AudioList.len === AUDIOELEMENTS_MAX) {
+    if (Audios.len === AUDIOELEMENTS_MAX) {
+        console.warn("WARNING: the maximum capacity of audios is full");
         //TODO: NOTIFICATION
-        //Audio Elements are full
         return;
     }
 
@@ -1265,7 +1526,13 @@ const addFiles = function (files) {
         timeoutFree = undefined;
     }
 
-    for (let file of files) {
+    let end = files.length;
+    if (Audios.len + files.length >= AUDIOELEMENTS_MAX) {
+        end = AUDIOELEMENTS_MAX - Audios.len;
+        console.warn("WARNING: the maximum capacity of audios is full");
+    }
+    for (let i = 0; i < end; i += 1) {
+        let file = files[i];
         if (!file.type.startsWith("audio/")) {
             continue;
         }
@@ -1278,30 +1545,29 @@ const addFiles = function (files) {
             //AUDIO is not playable
             continue;
         }
-        if (ZombieList.available()) {
-            const ZombieState = ZombieList.see();
-            assert(ZombieState !== undefined, "ERROR undefined state: ZombieList.see");
+        if (Zombies.available()) {
+            const ZombieState = Zombies.observe();
+            assert(ZombieState !== undefined, "ERROR undefined state: Zombies.see");
 
             const HtmlAudio = ZombieState.html;
             HtmlAudio.src = URL.createObjectURL(file);
+            HtmlAudio.volume = 0;
             HtmlAudio._name = file.name.slice(0, file.name.lastIndexOf("."));
             HtmlAudio._type = file.type;
-            HtmlAudio._zombie = false;
 
             HtmlAudio.addEventListener(
                 "canplaythrough",
                 ZombieAudioOncanplaythrough,
                 EVENT_CO
             );
+
         } else {
             const HtmlAudio = HtmlAudioTemplate.cloneNode();
             HtmlAudio.src = URL.createObjectURL(file);
             HtmlAudio.preservesPitch = false;
+            HtmlAudio.volume = 0;
             HtmlAudio._name = file.name.slice(0, file.name.lastIndexOf("."));
             HtmlAudio._type = file.type;
-            HtmlAudio._endPoint = 0;
-            HtmlAudio._index = 0;
-            HtmlAudio._zombie = false;
 
             HtmlAudio.addEventListener("error", AudioOnerror, EVENT_CO);
             HtmlAudio.addEventListener(
@@ -1445,8 +1711,8 @@ const randomAudioSelection = function (Keys, Sums, sum, w) {
                 }
             }
         }
-        SelectedAudios.buf[SelectedAudios.len] = Keys.buf[selected];
-        SelectedAudios.len += 1;
+        AudiosSelected.buf[AudiosSelected.len] = Keys.buf[selected];
+        AudiosSelected.len += 1;
 
         if (e === w-1) {
             break;
@@ -1467,92 +1733,74 @@ const randomAudioSelection = function (Keys, Sums, sum, w) {
         Keys.len -= 1;
         Sums.len -= 1;
     }
-    assert(w === SelectedAudios.len, `ERROR: weight: ${w}, SelectedAudios.len: ${SelectedAudios.len}`);
-    return SelectedAudios;
+    assert(w === AudiosSelected.len, `ERROR: weight: ${w}, AudiosSelected.len: ${AudiosSelected.len}`);
+    return AudiosSelected;
 };
 
+/**@type{() => number}*/
 const randomSetSelection = function () {
     if (SetEvents.len < 2) {
-        return false;
+        return 0;
     }
     const cardinal = selectCardinal(SetEvents);
-    console.info("Cardinal:", cardinal);
+    if (cardinal > 0) {
+        let sum = 0;
+        if (cardinal === Audios.len) {
+            AudiosSelected.all = true;
+        } else {
+            AudiosSelected.len = 0;
+            AudiosSelected.all = false;
 
-    if (cardinal <= 0) {
-        return false;
-    }
+            SelectionKeys.len = Audios.len;
+            SelectionSums.len = Audios.len;
 
-    let sum = 0;
-    if (cardinal === AudioList.len) {
-        SelectedAudios.all = true;
-    } else {
-        SelectedAudios.len = 0;
-        SelectedAudios.all = false;
-
-        SelectionKeys.len = AudioList.len;
-        SelectionSums.len = AudioList.len;
-
-        for (let i = 1; i < AudioList.len; i += 1) {
-            sum += AudioList.buf[i].events;
-            SelectionKeys.buf[i] = i;
-            SelectionSums.buf[i] = sum;
+            for (let i = 0; i < Audios.len; i += 1) {
+                sum += Audios.buf[i].events;
+                SelectionKeys.buf[i] = i;
+                SelectionSums.buf[i] = sum;
+            }
+            randomAudioSelection(SelectionKeys, SelectionSums, sum, cardinal);
         }
-        randomAudioSelection(SelectionKeys, SelectionSums, sum, cardinal);
     }
-    return true;
+    return cardinal;
 };
 
+const logRandomExecution = function (cardinal, interval, AudiosSelected) {
+    if (cardinal === 0) {
+        console.info(
+            "Cardinal:", cardinal,
+            "\nAudios: none",
+            "\nNext execution:", interval,
+        );
+    } else if (AudiosSelected.all) {
+        console.info(
+            "Cardinal:", cardinal,
+            "\nAudios: all",
+            "\nNext execution:", interval,
+        );
+    } else {
+        console.info(
+            "Cardinal:", cardinal,
+            "\nAudios:", AudiosSelected.buf.subarray(0, AudiosSelected.len),
+            "\nNext execution:", interval,
+        );
+    }
+};
 let executeTimeout = undefined;
-/**@type{(id: number) => undefined}*/
-const randomExecution = function (id) {
-    if (Started && StartedId === id) {
+const randomExecution = function () {
+    if (Started) {
         const interval = random(TimeIntervalmin, TimeIntervalmax) * 100;
-        console.info("Next execution:", interval);
-        if (randomSetSelection()) {
-            let end = 0;
-            if (SelectedAudios.all) {
-                end = AudioList.len;
-                if (AudioSelectedIdx !== -1 && !reduceMotion) {
-                    HtmlPTitle.animate(
-                        ANIMATION_SELECT.keyframes,
-                        ANIMATION_SELECT.timing
-                    );
-                }
-                for (let i = 0; i < end; i += 1) {
-                    const HtmlAudio = HtmlAppContainer.children[i];
-                    HtmlAudio.setAttribute("data-playing", "1");
-                    if (!reduceMotion) {
-                        HtmlAudio.animate(
-                            ANIMATION_SELECT.keyframes,
-                            ANIMATION_SELECT.timing
-                        );
-                    }
-                    audioAction(i, "play",)
-                }
+        const cardinal = randomSetSelection();
+        if (cardinal !== 0) {
+            if (AudiosPlaying.len === 0) {
+                audiosSelectedPlay(AudiosSelected);
             } else {
-                end = SelectedAudios.len;
-                for (let i = 0; i < end; i += 1) {
-                    const j = SelectedAudios.buf[i];
-                    const HtmlAudio = HtmlAppContainer.children[j];
-                    HtmlAudio.setAttribute("data-playing", "1");
-                    audioAction(j, "play",)
-                    if (!reduceMotion) {
-                        HtmlAudio.animate(
-                            ANIMATION_SELECT.keyframes,
-                            ANIMATION_SELECT.timing
-                        );
-                        if (AudioSelectedIdx === j) {
-                            HtmlPTitle.animate(
-                                ANIMATION_SELECT.keyframes,
-                                ANIMATION_SELECT.timing
-                            );
-                        }
-                    }
-                }
+                RequestFadeout.toReplay(AudiosSelected);
             }
         }
+        logRandomExecution(cardinal, interval, AudiosSelected);
         //we asume that there is no executeTimeout active
-        executeTimeout = setTimeout(randomExecution, interval, id);
+        executeTimeout = setTimeout(randomExecution, interval);
     } else {
         console.info("END");
         executeTimeout = undefined;
@@ -1591,53 +1839,105 @@ const updateHtmlPanelProbability = function (events) {
         (events / AudioEventsSum * 100).toFixed(2)
     }%`;
 };
+/**@type{(value: number) => undefined}*/
+const updateHtmlCRadios = function (value) {
+        let max = 0;
+        if (value < SetEvents.max) {
+            if (Audios.len < SetEvents.max) {
+                max = Audios.len;
+            } else {
+                max = SetEvents.max;
+            }
+            for (let i = value + 1; i < max + 1; i += 1) {
+                const HtmlSet = HtmlCSets.children[i]; 
+                HtmlSet.setAttribute("data-display", "0"); 
+                SetEvents.sum -= SetEvents.buf[i];
+            }
+            if (value < max) {
+                SetEvents.len -= max - value; 
+            }
+        } else {
+            if (Audios.len < value) {
+                max = Audios.len;
+            } else {
+                max = value;
+            }
+            for (let i = SetEvents.max + 1; i < max + 1; i += 1) {
+                const HtmlSet = HtmlCSets.children[i]; 
+                HtmlSet.setAttribute("data-display", "1"); 
+                HtmlSet.children[1].children["value"].textContent = "1";
+                SetEvents.buf[i] = 1;
+            }
+            if (SetEvents.max < max) {
+                SetEvents.len += max - SetEvents.max; 
+                SetEvents.sum += max - SetEvents.max;
+            }
+        }
+        SetEvents.max = value;
+        updateHtmlCSets();
+};
 
-/**@type{(audioState: AudioState) => undefined}*/
-const changeHtmlAppPanel = function (audioState) {
-    HtmlPTitle.textContent = audioState.html._name;
-    HtmlPVolumeInput.valueAsNumber = audioState.volume;
-    HtmlPVolumeText.textContent = `${audioState.volume*10}%`;
+/**@type{(audio: AudioState) => undefined}*/
+const changeHtmlAppPanel = function (audio) {
+    HtmlPTitle.textContent = audio.html._name;
+    HtmlPVolumeInput.valueAsNumber = audio.volume;
+    HtmlPVolumeText.textContent = `${audio.volume*10}%`;
 
-    updateHtmlPanelProbability(audioState.events);
+    updateHtmlPanelProbability(audio.events);
 
-    HtmlPEffects.children["delay"].firstElementChild.checked = !audioState.delayDisabled;
-    HtmlPEffects.children["panner"].firstElementChild.checked = !audioState.pannerDisabled;
-    HtmlPEffects.children["filter"].firstElementChild.checked = !audioState.filterDisabled;
-    HtmlPEffects.children["pbrate"].firstElementChild.checked = !audioState.pbrateDisabled;
-    HtmlPEffects.children["rsp"].firstElementChild.checked = !audioState.rspDisabled;
-    HtmlPEffects.children["rep"].firstElementChild.checked = !audioState.repDisabled;
+    HtmlPEffects.children["delay"].firstElementChild.checked = !audio.delayDisabled;
+    HtmlPEffects.children["panner"].firstElementChild.checked = !audio.pannerDisabled;
+    HtmlPEffects.children["filter"].firstElementChild.checked = !audio.filterDisabled;
+    HtmlPEffects.children["pbrate"].firstElementChild.checked = !audio.pbrateDisabled;
+    HtmlPEffects.children["rsp"].firstElementChild.checked = !audio.rspDisabled;
+    HtmlPEffects.children["rep"].firstElementChild.checked = !audio.repDisabled;
 
-    HtmlPStartTimeText.textContent = durationToTime(audioState.startTime);
-    HtmlPEndTimeText.textContent = durationToTime(audioState.endTime);
-
-    HtmlPStartTimeInput.valueAsNumber = (
-        audioState.startTime * 100 / audioState.duration
-    );
-    HtmlPEndTimeInput.valueAsNumber = (
-        audioState.endTime * 100 / audioState.duration
-    );
-    HtmlPStartTimeBar.setAttribute(
-        "style",
-        `--translate:${audioState.startTime * 100 / audioState.duration}%`
-    );
-    HtmlPEndTimeBar.setAttribute(
-        "style",
-        `--translate:${audioState.endTime * 100 / audioState.duration}%`
-    );
-
-    if (audioState.playing) {
-        HtmlAppPanel.setAttribute("data-playing", "1");
-        updateHtmlPanelCurrentTime(
-            audioState.html.currentTime * 100 / audioState.duration,
-            audioState.html.currentTime
+    if (audio.duration > 1) {
+        HtmlAppPanel.setAttribute("data-short", "0");
+        HtmlPStartTimeText.textContent = durationToTime(audio.startTime);
+        HtmlPEndTimeText.textContent = durationToTime(audio.endTime);
+        HtmlPStartTimeInput.valueAsNumber = (
+            audio.startTime * 100 / audio.duration
         );
-        updateHtmlPanelRP(
-            audioState.startPoint * 100 / audioState.duration,
-            audioState.endPoint * 100 / audioState.duration
+        HtmlPEndTimeInput.valueAsNumber = (
+            audio.endTime * 100 / audio.duration
+        );
+        HtmlPStartTimeBar.setAttribute(
+            "style",
+            `--translate:${audio.startTime * 100 / audio.duration}%`
+        );
+        HtmlPEndTimeBar.setAttribute(
+            "style",
+            `--translate:${audio.endTime * 100 / audio.duration}%`
         );
     } else {
+        HtmlAppPanel.setAttribute("data-short", "1");
+        HtmlPStartTimeText.textContent = durationToShortTime(0);
+        HtmlPEndTimeText.textContent = durationToShortTime(audio.duration);
+        HtmlPStartTimeInput.valueAsNumber = 0;
+        HtmlPEndTimeInput.valueAsNumber = audio.duration;
+        HtmlPStartTimeBar.setAttribute("style", `--translate:${0}%`);
+        HtmlPEndTimeBar.setAttribute("style", `--translate:${audio.duration}%`);
+    }
+
+    if (audio.playing) {
+        HtmlAppPanel.setAttribute("data-playing", "1");
+        updateHtmlPanelCurrentTime(
+            audio.html.currentTime * 100 / audio.duration,
+            audio.html.currentTime,
+            audio.duration < 1
+        );
+        if  (audio.duration < 1) {
+            updateHtmlPanelRP(0, 100);
+        } else {
+            updateHtmlPanelRP(
+                audio.startPoint * 100 / audio.duration,
+                audio.endPoint * 100 / audio.duration
+            );
+        }
+    } else {
         HtmlAppPanel.setAttribute("data-playing", "0");
-        updateHtmlPanelCurrentTime(0, 0);
+        updateHtmlPanelCurrentTime(0, 0, audio.duration < 1);
         updateHtmlPanelRP(0, 100);
     }
 };
@@ -1722,12 +2022,12 @@ const HtmlAppConfigOnclick = function (e) {
 
     } else if ("set-reset" === target.name) {
         SetEvents.zeros = 0;
-        SetEvents.max = SetEvents.cap - 1;
-        if (SetEvents.len <= AudioList.len) {
-            if (AudioList.len > SetEvents.max + 1) {
+        SetEvents.max = DEFAULT_SETEVENTS_MAX;
+        if (SetEvents.len <= Audios.len) {
+            if (Audios.len > SetEvents.max + 1) {
                 SetEvents.len = SetEvents.max + 1;
             } else {
-                SetEvents.len = AudioList.len + 1;
+                SetEvents.len = Audios.len + 1;
             }
         }
         SetEvents.sum = SetEvents.len;
@@ -1741,6 +2041,7 @@ const HtmlAppConfigOnclick = function (e) {
             );
         }
         HtmlCMaxElements.textContent = String(SetEvents.max);
+        localStorage.setItem(STORAGE_SETEVENTS_MAX, )
 
     } else if ("set-left" === target.name) {
         const HtmlSet = target.parentElement.parentElement;
@@ -1864,6 +2165,8 @@ const HtmlAppConfigOnclick = function (e) {
             HtmlCTimemaxUpdate(TimeTemporalmin);
             TimeTemporalmax = TimeTemporalmin;
             if (!reduceMotion) {
+
+                HtmlCTimemin.
                 HtmlCTimemin.animate(
                     ANIMATION_ALERT.keyframes,
                     ANIMATION_ALERT.timing
@@ -1995,22 +2298,6 @@ const HtmlAppConfigOnclick = function (e) {
         HtmlCTimeminUpdate(TimeTemporalmin-1);
         TimeTemporalmin -= 1;
         HtmlCTimeChanged();
-
-    } else if ("fades-reset" === target.name) {
-        HtmlCFadein.firstElementChild.valueAsNumber = DEFAULT_FADEIN;
-        HtmlCFadein.lastElementChild.children["value"].textContent = String(
-            getFade(DEFAULT_FADEIN)
-        );
-        HtmlCFadeout.firstElementChild.valueAsNumber = DEFAULT_FADEOUT;
-        HtmlCFadeout.lastElementChild.children["value"].textContent = String(
-            getFade(DEFAULT_FADEOUT)
-        );
-        localStorage.setItem(STORAGE_FADEIN, String(DEFAULT_FADEIN));
-        localStorage.setItem(STORAGE_FADEOUT, String(DEFAULT_FADEOUT));
-        FadeIn = DEFAULT_FADEIN;
-        FadeOut = DEFAULT_FADEOUT;
-        FadeInSec = DEFAULT_FADEIN_SEC;
-        FadeOutSec = DEFAULT_FADEOUT_SEC;
 
     } else if ("delay-reset" === target.name) {
         HtmlCDelayTimemin.children["delay-timemin"].valueAsNumber = (
@@ -2183,63 +2470,16 @@ const HtmlAppConfigOninput = function (e) {
         }
     } else if ("elements-radio" === target.name) {
         const value = Number(target.value);
-        if (value === SetEvents.max || value < 1) {
+        assert(0 < value && value < SetEvents.cap);
+        if (value === SetEvents.max) {
             return;
         }
-        assert(0 < value && value < SetEvents.cap);
-        let max = 0;
-        if (value < SetEvents.max) {
-            if (AudioList.len < SetEvents.max) {
-                max = AudioList.len;
-            } else {
-                max = SetEvents.max;
-            }
-            for (let i = value + 1; i < max + 1; i += 1) {
-                const HtmlSet = HtmlCSets.children[i]; 
-                HtmlSet.setAttribute("data-display", "0"); 
-                SetEvents.sum -= SetEvents.buf[i];
-            }
-            if (value < max) {
-                SetEvents.len -= max - value; 
-            }
-        } else {
-            if (AudioList.len < value) {
-                max = AudioList.len;
-            } else {
-                max = value;
-            }
-            for (let i = SetEvents.max + 1; i < max + 1; i += 1) {
-                const HtmlSet = HtmlCSets.children[i]; 
-                HtmlSet.setAttribute("data-display", "1"); 
-                HtmlSet.children[1].children["value"].textContent = "1";
-                SetEvents.buf[i] = 1;
-            }
-            if (SetEvents.max < max) {
-                SetEvents.len += max - SetEvents.max; 
-                SetEvents.sum += max - SetEvents.max;
-            }
-        }
-        SetEvents.max = value;
-        updateHtmlCSets();
+        updateHtmlCRadios(value);
 
         HtmlCMaxElements.textContent = target.value;
         HtmlCSetDetails.setAttribute("data-elements", "0");
 
-    } else if ("fadein" === target.name) {
-        FadeIn = target.valueAsNumber;
-        FadeInSec = (getFade(target.valueAsNumber) / 1000);
-        HtmlCFadein.lastElementChild.children["value"].textContent = String(
-            getFade(target.valueAsNumber)
-        );
-        localStorage.setItem(STORAGE_FADEIN, FadeIn);
-
-    } else if ("fadeout" === target.name) {
-        FadeOut = target.valueAsNumber;
-        FadeOut = (getFade(target.valueAsNumber) / 1000);
-        HtmlCFadeout.lastElementChild.children["value"].textContent = String(
-            getFade(target.valueAsNumber)
-        );
-        localStorage.setItem(STORAGE_FADEIN, FadeOut);
+        localStorage.setItem(STORAGE_SETEVENTS_MAX, target.value);
 
     } else if ("delay-da" === target.name) {
         DelayAreAllDisable = target.checked;
@@ -2248,14 +2488,14 @@ const HtmlAppConfigOninput = function (e) {
             String(Number(DelayAreAllDisable))
         );
 
-        if (AudioList.len < 0) {
+        if (Audios.len < 0) {
             return;
         }
-        for (let i = 0; i < AudioList.len; i += 1) {
-            const state = AudioList.get(i);
-            state.delayDisabled = target.checked;
+        for (let i = 0; i < Audios.len; i += 1) {
+            const audio = Audios.get(i);
+            audio.delayDisabled = target.checked;
         }
-        if (AudioSelectedIdx !== -1) {
+        if (AudioPanelIdx !== -1) {
             changeHtmlAppPanelEffect("delay", !target.checked);
         }
 
@@ -2305,14 +2545,14 @@ const HtmlAppConfigOninput = function (e) {
             STORAGE_FILTER_DISABLE,
             String(Number(FilterAreAllDisable))
         );
-        if (AudioList.len < 0) {
+        if (Audios.len < 0) {
             return;
         }
-        for (let i = 0; i < AudioList.len; i += 1) {
-            const state = AudioList.get(i);
-            state.filterDisabled = target.checked;
+        for (let i = 0; i < Audios.len; i += 1) {
+            const audio = Audios.get(i);
+            audio.filterDisabled = target.checked;
         }
-        if (AudioSelectedIdx !== -1) {
+        if (AudioPanelIdx !== -1) {
             changeHtmlAppPanelEffect("filter", !target.checked);
         }
 
@@ -2418,14 +2658,14 @@ const HtmlAppConfigOninput = function (e) {
             STORAGE_PANNER_DISABLE,
             String(Number(PannerAreAllDisable))
         );
-        if (AudioList.len < 0) {
+        if (Audios.len < 0) {
             return;
         }
-        for (let i = 0; i < AudioList.len; i += 1) {
-            const state = AudioList.get(i);
-            state.pannerDisabled = target.checked;
+        for (let i = 0; i < Audios.len; i += 1) {
+            const audio = Audios.get(i);
+            audio.pannerDisabled = target.checked;
         }
-        if (AudioSelectedIdx !== -1) {
+        if (AudioPanelIdx !== -1) {
             changeHtmlAppPanelEffect("panner", !target.checked);
         }
 
@@ -2492,14 +2732,14 @@ const HtmlAppConfigOninput = function (e) {
             STORAGE_PBRATE_DISABLE,
             String(Number(PbRateAreAllDisable))
         );
-        if (AudioList.len < 0) {
+        if (Audios.len < 0) {
             return;
         }
-        for (let i = 0; i < AudioList.len; i += 1) {
-            const state = AudioList.get(i);
-            state.pbrateDisabled = target.checked;
+        for (let i = 0; i < Audios.len; i += 1) {
+            const audio = Audios.get(i);
+            audio.pbrateDisabled = target.checked;
         }
-        if (AudioSelectedIdx !== -1) {
+        if (AudioPanelIdx !== -1) {
             changeHtmlAppPanelEffect("pbrate", !target.checked);
         }
 
@@ -2529,14 +2769,14 @@ const HtmlAppConfigOninput = function (e) {
             STORAGE_CRSP_DISABLE,
             String(Number(CutRSPAreAllDisable))
         );
-        if (AudioList.len < 0) {
+        if (Audios.len < 0) {
             return;
         }
-        for (let i = 0; i < AudioList.len; i += 1) {
-            const state = AudioList.get(i);
-            state.rspDisabled = target.checked;
+        for (let i = 0; i < Audios.len; i += 1) {
+            const audio = Audios.get(i);
+            audio.rspDisabled = target.checked;
         }
-        if (AudioSelectedIdx !== -1) {
+        if (AudioPanelIdx !== -1) {
             changeHtmlAppPanelEffect("rsp", !target.checked);
         }
 
@@ -2546,14 +2786,14 @@ const HtmlAppConfigOninput = function (e) {
             STORAGE_CREP_DISABLE,
             String(Number(CutREPAreAllDisable))
         );
-        if (AudioList.len < 0) {
+        if (Audios.len < 0) {
             return;
         }
-        for (let i = 0; i < AudioList.len; i += 1) {
-            const state = AudioList.get(i);
-            state.repDisabled = target.checked;
+        for (let i = 0; i < Audios.len; i += 1) {
+            const audio = Audios.get(i);
+            audio.repDisabled = target.checked;
         }
-        if (AudioSelectedIdx !== -1) {
+        if (AudioPanelIdx !== -1) {
             changeHtmlAppPanelEffect("rep", !target.checked);
         }
     }
@@ -2563,71 +2803,30 @@ const HtmlAppMenuOnclick = function (e) {
     const target = e.target;
     const name = target.getAttribute("name");
     if ("start" === name) {
-        let dataStart = target.getAttribute("data-start");
-        if (dataStart === "0") {
-            Started = true;
-            randomExecution(startedIdNext());
-            target.setAttribute("data-start", "1");
-        } else {
+        if (Started) {
             Started = false;
             if (undefined !== executeTimeout) {
                 clearTimeout(executeTimeout);
                 executeTimeout = undefined;
             }
-            if (play) {
-                cancelAnimationFrame(AudiosPlaying.raf);
-                for (let audio of AudiosPlaying.buf) {
-                    let i = audio.html._index;
-                    audioPause(audio);
-                    HtmlAppContainer.children[i].setAttribute("data-playing", "0");
-                    if (i === AudioSelectedIdx) {
-                        HtmlAppPanel.setAttribute("data-playing", "0");
-                        if (audio.duration >= 1) {
-                            updateHtmlPanelRP(0, 100);
-                        }
-                        updateHtmlPanelCurrentTime(0, 0);
-                    }
-                }
-                AudiosPlaying.buf.length = 0;
-                AudiosPlaying.len = 0;
-                play = false;
+            if (AudiosPlaying.len > 0) {
+                RequestFadeout.toPause(AudiosPlaying);
             }
             target.setAttribute("data-start", "0");
+        } else {
+            Started = true;
+            randomExecution();
+            target.setAttribute("data-start", "1");
         }
     } else if ("clear" === name) {
-        if (AudioList.len === 0) {
+        if (Audios.len === 0) {
             return;
         }
-        defaultSets();
-        if (play) {
-            cancelAnimationFrame(AudiosPlaying.raf);
-            for (let audio of AudiosPlaying.buf) {
-                audioPause(audio);
-            }
-            AudiosPlaying.buf.length = 0;
-            AudiosPlaying.len = 0;
-            play = false;
+        if (AudiosPlaying.len > 0) {
+            RequestFadeout.toClear(AudiosPlaying);
+        } else {
+            clear();
         }
-        for (let audio of AudioList.buf) {
-            audioPause(audio);
-            AudioList.cleanAudio(audio);
-            ZombieList.push(audio);
-        }
-        AudioList.buf.length = 0;
-        AudioList.len = 0;
-
-        AudioEventsSum = 0;
-
-        AudioSelectedIdx = -1;
-        HtmlAppPanel.setAttribute("data-display", "0");
-
-        HtmlAudioZombies.append.apply(
-            HtmlAudioZombies,
-            HtmlAppContainer.children
-        );
-        clearTimeout(timeoutFree);
-        timeoutFree = setTimeout(timeoutFreeFn, FREE_TIME);
-
     } else if ("file" === name) {
         target.value = "";
     } else if ("config" === name) {
@@ -2652,21 +2851,72 @@ const HtmlAppContainerOnclick = function (e) {
     if ("play" === name) {
         const HtmlAudioElement = target.parentElement;
         let i = getHtmlChildIndex(HtmlAppContainer, HtmlAudioElement);
-        if (HtmlAudioElement.getAttribute("data-playing") === "0") {
-            HtmlAudioElement.setAttribute("data-playing", "1");
-            audioAction(i, "play");
+        assert(i > -1, "ERROR: There is a HtmlAudio that is not found in HtmlAppContainer");
+        assert(i < Audios.len, "ERROR: The HtmlAudio index is out of range in Audios");
+        const audio = Audios.get(i);
+        if (audio.playing) {
+            if (!audio.fadeoutRunning) {
+                audio.endPoint = (
+                    Math.trunc(audio.html.currentTime * 100)
+                    + FADEOUT
+                ) / 100;
+                audioFadeout(audio, context.currentTime);
+            }
         } else {
-            HtmlAudioElement.setAttribute("data-playing", "0");
-            audioAction(i, "pause");
+            play(audio, HtmlAudioElement);
+            playAudioPanel(i, audio)
         }
     } else if ("remove" === name) {
         const HtmlAudioElement = target.parentElement;
         let i = getHtmlChildIndex(HtmlAppContainer, HtmlAudioElement);
+        assert(i !== -1, "ERROR: There is a HtmlAudio that is not found in HtmlAppContainer");
+        assert(i < Audios.len, "ERROR: The HtmlAudio index is out of range in Audios");
 
-        audioAction(i, "remove");
-        HtmlAudioZombies.appendChild(HtmlAudioElement);
+        const audio = Audios.get(i);
+        audio.remove = true;
 
-        if (AudioList.len < SetEvents.max) {
+        Audios.remove(i);
+        HtmlAudioElement.remove();
+
+        if (audio.playing) {
+            if (!audio.fadeoutRunning) {
+                audio.endPoint = (
+                    Math.trunc(audio.html.currentTime * 100)
+                    + FADEOUT
+                ) / 100;
+                audioFadeout(audio, context.currentTime);
+            }
+        } else {
+            remove(audio, HtmlAudioElement);
+        }
+
+        AudioEventsSum -= audio.events;
+        assert(AudioEventsSum > -1, "ERROR: AudioEventsSum is less than 0");
+
+        if (i === AudioPanelIdx) {
+            //SELECTED
+            AudioPanelIdx = -1;
+            HtmlAppPanel.setAttribute("data-display", "0");
+        }
+        if (Audios.len > 0) {
+            if (AudioPanelIdx !== -1) {
+                if (i < AudioPanelIdx) {
+                    AudioPanelIdx -= 1;
+                }
+                const selectedAudio = Audios.get(AudioPanelIdx);
+                assert(selectedAudio !== undefined, "ERROR: AudioPanelIdx do not exist");
+                updateHtmlPanelProbability(selectedAudio.events);
+            }
+
+            updateHtmlAudioProbability();
+
+            if (Audios.len < 2) {
+                HtmlAppPanel.setAttribute("data-scroll", "0");
+                HtmlAppPanel.setAttribute("data-probability", "0");
+            }
+        }
+
+        if (Audios.len < SetEvents.max) {
             const HtmlSet = HtmlCSets.children[SetEvents.len-1];
             HtmlSet.setAttribute("data-display", "0"); 
             if (0 === SetEvents.buf[SetEvents.len-1]) {
@@ -2678,34 +2928,6 @@ const HtmlAppContainerOnclick = function (e) {
 
             updateHtmlCSets();
         }
-
-        //TODO
-        if (i === AudioSelectedIdx || AudioList.len === 0) {
-            //SELECTED
-            AudioSelectedIdx = -1;
-            HtmlAppPanel.setAttribute("data-display", "0");
-        } else if (AudioSelectedIdx - 1 > -1) {
-            AudioSelectedIdx -= 1;
-            const audioSelected = AudioList.get(AudioSelectedIdx);
-            //Throw ERROR
-            assert(audioSelected !== undefined);
-            updateHtmlPanelProbability(audioSelected.events);
-        }
-        if (AudioList.len !== 0) {
-            updateHtmlAudioProbability();
-        }
-
-
-        //defaults
-        HtmlAudioElement.setAttribute("data-playing", "0");
-        HtmlAudioElement.setAttribute("data-selected", "0");
-
-        if (AudioList.len < 2) {
-            HtmlPControls.setAttribute("data-scroll", "0");
-        }
-
-        clearTimeout(timeoutFree)
-        timeoutFree = setTimeout(timeoutFreeFn,FREE_TIME);
     } else if ("title" === name
         || "pin" === name
         || "audio" === name
@@ -2717,12 +2939,12 @@ const HtmlAppContainerOnclick = function (e) {
         }
         if (HTMLAudioElement.getAttribute("data-selected") === "0") {
             let i = getHtmlChildIndex(HtmlAppContainer, HTMLAudioElement);
-            assert(i !== -1, "ERROR: index do not exist");
-            assert(i < AudioList.len, "ERROR: the index is out of AudioList");
+            assert(i !== -1, "ERROR: There is a HtmlAudio that is not found in HtmlAppContainer");
+            assert(i < Audios.len, "ERROR: The HtmlAudio index is out of range in Audios");
 
-            if (AudioSelectedIdx !== -1) {
+            if (AudioPanelIdx !== -1) {
                 //SOME TIMES THROW ERROR
-                HtmlAppContainer.children[AudioSelectedIdx].setAttribute(
+                HtmlAppContainer.children[AudioPanelIdx].setAttribute(
                     "data-selected",
                     "0"
                 );
@@ -2731,195 +2953,199 @@ const HtmlAppContainerOnclick = function (e) {
             }
             HTMLAudioElement.setAttribute("data-selected", "1");
             //SELECTED
-            AudioSelectedIdx = i;
+            AudioPanelIdx = i;
 
-            changeHtmlAppPanel(AudioList.get(i));
+            changeHtmlAppPanel(Audios.get(i));
+
         } else {
             HTMLAudioElement.setAttribute("data-selected", "0");
             HtmlAppPanel.setAttribute("data-display", "0");
             //SELECTED
-            AudioSelectedIdx = -1;
+            AudioPanelIdx = -1;
         }
     }
 };
 
 
 const HtmlAppPanelOnclick = function (e) {
-    assert(AudioSelectedIdx !== -1, "ERROR: Panel Bad Open");
+    assert(0 <= AudioPanelIdx && AudioPanelIdx < Audios.len);
+    assert(Audios.len === HtmlAppContainer.children.length);
 
     const target = e.target;
     if ("p-left" === target.name) {
-        if (AudioList.len === 1) {
+        if (Audios.len === 1) {
             return;
         }
-
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        if (state.events === AUDIO_EVENT_MIN_VALUE) {
+        const audio = Audios.get(AudioPanelIdx);
+        if (audio.events === AUDIO_EVENT_MIN_VALUE) {
             return;
         }
-        state.events -= 1;
+        audio.events -= 1;
         AudioEventsSum -= 1;
 
         updateHtmlAudioProbability();
-        updateHtmlPanelProbability(state.events);
+        updateHtmlPanelProbability(audio.events);
 
     } else if ("p-right" === target.name) {
-        if (AudioList.len === 1) {
+        if (Audios.len === 1) {
             return;
         }
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        if (state.events === AUDIO_EVENT_MAX_VALUE) {
+        const audio = Audios.get(AudioPanelIdx);
+        if (audio.events === AUDIO_EVENT_MAX_VALUE) {
             return;
         }
-        state.events += 1;
+        audio.events += 1;
         AudioEventsSum += 1;
 
         updateHtmlAudioProbability();
-        updateHtmlPanelProbability(state.events);
+        updateHtmlPanelProbability(audio.events);
+
     } else if ("play" === target.name) {
-        const HtmlAudioElement = HtmlAppContainer.children[AudioSelectedIdx];
-        if (HtmlAudioElement.getAttribute("data-playing") === "0") {
-            HtmlAudioElement.setAttribute("data-playing", "1");
-            audioAction(AudioSelectedIdx, "play");
+        const HtmlAudioElement = HtmlAppContainer.children[AudioPanelIdx];
+        const audio = Audios.get(AudioPanelIdx);
+        if (audio.playing) {
+            if (!audio.fadeoutRunning) {
+                audio.endPoint = (
+                    Math.trunc(audio.html.currentTime * 100)
+                    + FADEOUT
+                ) / 100;
+                audioFadeout(audio, context.currentTime);
+            }
         } else {
-            HtmlAudioElement.setAttribute("data-playing", "0");
-            audioAction(AudioSelectedIdx, "pause");
+            play(audio, HtmlAudioElement);
+            playAudioPanel(AudioPanelIdx, audio);
         }
     } else if ("close" === target.name) {
-        const HTMLAudioElement = HtmlAppContainer.children[AudioSelectedIdx];
+        const HTMLAudioElement = HtmlAppContainer.children[AudioPanelIdx];
         HTMLAudioElement.setAttribute("data-selected", "0");
         HtmlAppPanel.setAttribute("data-display", "0");
         //SELECTED
-        AudioSelectedIdx = -1;
+        AudioPanelIdx = -1;
 
     } else if ("prev" === target.name) {
-        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "0");
-        if (AudioSelectedIdx < 1) {
-            AudioSelectedIdx = AudioList.len - 1;
+        HtmlAppContainer.children[AudioPanelIdx].setAttribute("data-selected", "0");
+        if (AudioPanelIdx < 1) {
+            AudioPanelIdx = Audios.len - 1;
         } else {
-            AudioSelectedIdx -= 1;
+            AudioPanelIdx -= 1;
         }
-        const audioState = AudioList.get(AudioSelectedIdx);
-        assert(audioState !== undefined, "ERROR: AudioList.get not found audio")
-        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "1");
-        changeHtmlAppPanel(audioState);
+        HtmlAppContainer.children[AudioPanelIdx].setAttribute("data-selected", "1");
+        const audio = Audios.get(AudioPanelIdx);
+        changeHtmlAppPanel(audio);
     } else if ("next" === target.name) {
-        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "0");
-        if (AudioSelectedIdx === AudioList.len - 1) {
-            AudioSelectedIdx = 0;
+        HtmlAppContainer.children[AudioPanelIdx].setAttribute("data-selected", "0");
+        if (AudioPanelIdx === Audios.len - 1) {
+            AudioPanelIdx = 0;
         } else {
-            AudioSelectedIdx += 1;
+            AudioPanelIdx += 1;
         }
-        const audioState = AudioList.get(AudioSelectedIdx);
-        assert(audioState !== undefined, "ERROR: AudioList.get not found audio")
-        HtmlAppContainer.children[AudioSelectedIdx].setAttribute("data-selected", "1");
-        changeHtmlAppPanel(audioState);
+        HtmlAppContainer.children[AudioPanelIdx].setAttribute("data-selected", "1");
+        const audio = Audios.get(AudioPanelIdx);
+        changeHtmlAppPanel(audio);
     }
 };
 
 const HtmlAppPanelOninput = function (e) {
-    assert(AudioSelectedIdx !== -1, "ERROR: Panel Bad Open");
+    assert(AudioPanelIdx !== -1, "ERROR: Panel Bad Open");
 
     const target = e.target;
     if ("volume-input" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
         if (target.valueAsNumber < LIMIT_VOLUME_MIN) {
             target.valueAsNumber = LIMIT_VOLUME_MIN;
         } else if (target.valueAsNumber > LIMIT_VOLUME_MAX) {
             target.valueAsNumber = LIMIT_VOLUME_MAX;
         } else {
-            state.input.gain.value = target.valueAsNumber / 10;
-            state.volume = target.valueAsNumber;
-            target.nextElementSibling.textContent = `${state.volume * 10}%`;
+            audio.input.gain.value = target.valueAsNumber / 10;
+            audio.volume = target.valueAsNumber;
+            target.nextElementSibling.textContent = `${audio.volume * 10}%`;
         }
 
     } else if ("delay" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        state.delayDisabled = !target.checked;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        audio.delayDisabled = !target.checked;
         if (DelayAreAllDisable && target.checked) {
             DelayAreAllDisable = false;
             HtmlCDelayDA.checked = false;
         }
 
     } else if ("filter" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        state.filterDisabled = !target.checked;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        audio.filterDisabled = !target.checked;
         if (FilterAreAllDisable && target.checked) {
             FilterAreAllDisable = false;
             HtmlCFilterDA.checked = false;
         }
 
     } else if ("panner" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        state.pannerDisabled = !target.checked;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        audio.pannerDisabled = !target.checked;
         if (PannerAreAllDisable && target.checked) {
             PannerAreAllDisable = false;
             HtmlCPannerDA.checked = false;
         }
 
     } else if ("pbrate" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        state.pbrateDisabled = !target.checked;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        audio.pbrateDisabled = !target.checked;
         if (PbRateAreAllDisable && target.checked) {
             PbRateAreAllDisable = false;
             HtmlCPbrateDA.checked = false;
         }
 
     } else if ("rsp" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        state.rspDisabled = !target.checked;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        audio.rspDisabled = !target.checked;
         if (CutRSPAreAllDisable && target.checked) {
             CutRSPAreAllDisable = false;
             HtmlCRSPDA.checked = false;
         }
 
     } else if ("rep" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        state.repDisabled = !target.checked;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        audio.repDisabled = !target.checked;
         if (CutREPAreAllDisable && target.checked) {
             CutREPAreAllDisable = false;
             HtmlCREPDA.checked = false;
         }
 
     } else if ("start-time-input" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        let startTime = (state.duration * target.valueAsNumber) / 100;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        let startTime = (audio.duration * target.valueAsNumber) / 100;
         let translate = target.value;
 
-        if (startTime + 0.5 >= state.endTime) {
-            startTime = state.endTime - 0.5
-            let value = ((state.endTime - 0.5) * 100) / state.duration;
+        if (startTime + 0.5 >= audio.endTime) {
+            startTime = audio.endTime - 0.5
+            let value = ((audio.endTime - 0.5) * 100) / audio.duration;
             translate = String(value);
             target.valueAsNumber = value;
 
         }
-        state.startTime = startTime;
+        audio.startTime = startTime;
         HtmlPStartTimeBar.setAttribute("style", "--translate:"+translate+"%");
         HtmlPStartTimeText.textContent = durationToTime(String(startTime));
 
     } else if ("end-time-input" === target.name) {
-        const state = AudioList.get(AudioSelectedIdx);
-        assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
-        let endTime = (state.duration * target.valueAsNumber) / 100;
+        const audio = Audios.get(AudioPanelIdx);
+        assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
+        let endTime = (audio.duration * target.valueAsNumber) / 100;
         let translate = target.value;
-        if (state.startTime >= endTime - 0.5) {
-            endTime = state.startTime + 0.5;
-            let value = ((state.startTime + 0.5) * 100) / state.duration;
+        if (audio.startTime >= endTime - 0.5) {
+            endTime = audio.startTime + 0.5;
+            let value = ((audio.startTime + 0.5) * 100) / audio.duration;
             translate = String(value);
             target.valueAsNumber = value;
         }
 
-        state.endTime = endTime;
+        audio.endTime = endTime;
         HtmlPEndTimeBar.setAttribute("style", "--translate:"+translate+"%");
         HtmlPEndTimeText.textContent = durationToTime(String(endTime));
     }
@@ -2957,18 +3183,6 @@ const initBodyOnkeydown = function (e) {
 };
 
 //INITS
-
-/** @type{(v: string) => boolean}*/
-const checkAppVersion = function (v) {
-    let res = true;
-    if (localStorage.getItem("version") !== v) {
-        localStorage.clear();
-        localStorage.setItem("version", v);
-        res = false;
-    }
-    return res;
-};
-
 const HtmlPresOpenOnclick = function () {
     document.body.removeEventListener("keydown", initBodyOnkeydown);
 
@@ -2993,9 +3207,10 @@ const HtmlPresOpenOnclick = function () {
 
     return openApp();
 };
+
 const HtmlVolumeOnwheel = function (e) {
     const name = e.target.getAttribute("name");
-    let input; e.target.parentElement.children["volume-input"];
+    let input = e.target.parentElement.children["volume-input"];
     if (name === "volume-input" || name === "volume-text") {
         //can throw Error
         input = e.target.parentElement.children["volume-input"];
@@ -3006,23 +3221,23 @@ const HtmlVolumeOnwheel = function (e) {
         return;
     }
 
-    const state = AudioList.get(AudioSelectedIdx);
-    assert(state !== undefined, "ERROR undefined state: AudioList.get on AudioSelectedIdx");
+    const audio = Audios.get(AudioPanelIdx);
+    assert(audio !== undefined, "ERROR undefined audio: Audios.get on AudioPanelIdx");
 
     if (e.deltaY > 0) {
-        if (state.volume - 1 < LIMIT_VOLUME_MIN) {
+        if (audio.volume - 1 < LIMIT_VOLUME_MIN) {
             return;
         }
-        state.volume -= 1;
+        audio.volume -= 1;
     } else {
-        if (state.volume + 1 > LIMIT_VOLUME_MAX) {
+        if (audio.volume + 1 > LIMIT_VOLUME_MAX) {
             return;
         }
-        state.volume += 1;
+        audio.volume += 1;
     }
-    input.valueAsNumber = state.volume;
-    input.nextElementSibling.textContent = `${state.volume * 10}%`;
-    state.input.gain.value = state.volume / 10;
+    input.valueAsNumber = audio.volume;
+    input.nextElementSibling.textContent = `${audio.volume * 10}%`;
+    audio.input.gain.value = audio.volume / 10;
 };
 
 const setHtmlAppConfiguration = function () {
@@ -3048,15 +3263,6 @@ const setHtmlAppConfiguration = function () {
     );
     HtmlCDelayFeedbackmax.lastElementChild.children["value"].textContent = String(
         getDelayFeedback(DelayFeedbackmax)
-    );
-
-    HtmlCFadein.firstElementChild.valueAsNumber = FadeIn;
-    HtmlCFadein.lastElementChild.children["value"].textContent = String(
-        getFade(FadeIn)
-    );
-    HtmlCFadeout.firstElementChild.valueAsNumber = FadeOut;
-    HtmlCFadeout.lastElementChild.children["value"].textContent = String(
-        getFade(FadeOut)
     );
 
     HtmlCFilterDA.checked = FilterAreAllDisable;
@@ -3138,16 +3344,16 @@ const setHtmlAppConfiguration = function () {
     HtmlCTimemaxUpdate(TimeIntervalmax);
     HtmlCTimeminUpdate(TimeIntervalmin);
 
-    for (let i = 0; i < AudioList.len; i += 1) {
-        const state = AudioList.get(i);
-        state.delayDisabled = DelayAreAllDisable;
-        state.filterDisabled = FilterAreAllDisable;
-        state.pannerDisabled = PannerAreAllDisable;
-        state.pbrateDisabled = PbRateAreAllDisable;
-        state.rspDisabled = CutRSPAreAllDisable;
-        state.repDisabled = CutREPAreAllDisable;
+    for (let i = 0; i < Audios.len; i += 1) {
+        const audio = Audios.get(i);
+        audio.delayDisabled = DelayAreAllDisable;
+        audio.filterDisabled = FilterAreAllDisable;
+        audio.pannerDisabled = PannerAreAllDisable;
+        audio.pbrateDisabled = PbRateAreAllDisable;
+        audio.rspDisabled = CutRSPAreAllDisable;
+        audio.repDisabled = CutREPAreAllDisable;
     }
-    if (SelectedAudios !== -1) {
+    if (AudiosSelected !== -1) {
         changeHtmlAppPanelEffect("delay", !DelayAreAllDisable);
         changeHtmlAppPanelEffect("filter", !FilterAreAllDisable);
         changeHtmlAppPanelEffect("panner", !PannerAreAllDisable);
@@ -3196,7 +3402,7 @@ const localStorageInit = function (appVersion) {
     let mins = s[STORAGE_DELAY_TIMEMIN];
     let maxn = Number(maxs);
     let minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_TIMEMAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_DELAY_TIMEMAX) {
         DelayTimemax = maxn;
         DelayTimemin = minn;
     } else {
@@ -3208,30 +3414,12 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_DELAY_FEEDBACKMIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_FEEDBACKMAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_DELAY_FEEDBACKMAX) {
         DelayTimemax = maxn;
         DelayTimemin = minn;
     } else {
         s.setItem(STORAGE_DELAY_FEEDBACKMAX, String(DelayFeedbackmax));
         s.setItem(STORAGE_DELAY_FEEDBACKMIN, String(DelayFeedbackmin));
-    }
-
-    maxs = s[STORAGE_FADEIN];
-    maxn = Number(maxs);
-    if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
-        FadeIn = maxn;
-        FadeInSec = getFade(maxn)/1000;
-    } else {
-        s.setItem(STORAGE_FADEIN, String(FadeIn));
-    }
-
-    maxs = s[STORAGE_FADEOUT];
-    maxn = Number(maxs);
-    if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
-        FadeOut = maxn;
-        FadeOutSec = getFade(maxn)/1000;
-    } else {
-        s.setItem(STORAGE_FADEOUT, String(FadeOut));
     }
 
     t = s[STORAGE_FILTER_DISABLE];
@@ -3245,7 +3433,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_FILTER_FREQMIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_FREQMAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_FILTER_FREQMAX) {
         FilterFreqmax = maxn;
         FilterFreqmin = minn;
     } else {
@@ -3257,7 +3445,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_FILTER_QMIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_QMAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_FILTER_QMAX) {
         FilterQmax = maxn;
         FilterQmin = minn;
     } else {
@@ -3302,7 +3490,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_PANNER_XMIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
         PannerXmax = maxn;
         PannerXmin = minn;
     } else {
@@ -3314,7 +3502,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_PANNER_YMIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
         PannerYmax = maxn;
         PannerYmin = minn;
     } else {
@@ -3326,7 +3514,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_PANNER_ZMIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_ZMAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_ZMAX) {
         PannerZmax = maxn;
         PannerZmin = minn;
     } else {
@@ -3345,7 +3533,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_PBRATE_MIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+    if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
         PbRatemax = maxn;
         PbRatemin = minn;
     } else {
@@ -3357,7 +3545,7 @@ const localStorageInit = function (appVersion) {
     mins = s[STORAGE_TIME_MIN];
     maxn = Number(maxs);
     minn = Number(mins);
-    if (LIMIT_TIMEINTERVAL_MIN <= mins
+    if (LIMIT_TIMEINTERVAL_MIN <= minn
         && minn <= maxn
         && maxn <= LIMIT_TIMEINTERVAL_MAX
     ) {
@@ -3369,7 +3557,18 @@ const localStorageInit = function (appVersion) {
         s.setItem(STORAGE_TIME_MAX, String(TimeIntervalmax));
         s.setItem(STORAGE_TIME_MIN, String(TimeIntervalmin));
     }
+
+    maxs = s[STORAGE_SETEVENTS_MAX];
+    maxn = Number(maxs);
+    if (1 <= maxn && maxn <= CARDINAL_MAX) {
+        SetEvents.max = maxn;
+        HtmlCMaxElements.textContent = maxs;
+        HtmlCSetRadios.children[maxn-1].firstElementChild.checked = true;
+    } else {
+        s.setItem(STORAGE_SETEVENTS_MAX, String(SetEvents.max));
+    }
 };
+
 const loadConfigFile = function () {
     const text = READER.result;
     //can throw error
@@ -3398,7 +3597,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_TIMEMAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_DELAY_TIMEMAX) {
             DelayTimemax = maxn;
             DelayTimemin = minn;
             localStorage.setItem(STORAGE_DELAY_TIMEMAX, maxs);
@@ -3411,31 +3610,11 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_DELAY_FEEDBACKMAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_DELAY_FEEDBACKMAX) {
             DelayTimemax = maxn;
             DelayTimemin = minn;
             localStorage.setItem(STORAGE_DELAY_FEEDBACKMAX, maxs);
             localStorage.setItem(STORAGE_DELAY_FEEDBACKMIN, mins);
-        }
-    }
-
-    maxs = json[STORAGE_FADEIN];
-    if (maxs !== undefined) {
-        maxn = Number(maxs);
-        if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
-            FadeIn = maxn;
-            FadeInSec = getFade(maxn)/1000;
-            localStorage.setItem(STORAGE_FADEIN, maxs);
-        }
-    }
-
-    maxs = json[STORAGE_FADEOUT];
-    if (maxs !== undefined) {
-        maxn = Number(maxs);
-        if (LIMIT_MIN <= maxn && maxn <= LIMIT_FADES_MAX) {
-            FadeOut = maxn;
-            FadeOutSec = getFade(maxn)/1000;
-            localStorage.setItem(STORAGE_FADEOUT, maxs);
         }
     }
 
@@ -3450,7 +3629,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_FREQMAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_FILTER_FREQMAX) {
             FilterFreqmax = maxn;
             FilterFreqmin = minn;
             localStorage.setItem(STORAGE_FILTER_FREQMAX, maxs);
@@ -3463,7 +3642,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_FILTER_QMAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_FILTER_QMAX) {
             FilterQmax = maxn;
             FilterQmin = minn;
             localStorage.setItem(STORAGE_FILTER_QMAX, maxs);
@@ -3501,7 +3680,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
             PannerXmax = maxn;
             PannerXmin = minn;
             localStorage.setItem(STORAGE_PANNER_XMAX, maxs);
@@ -3514,7 +3693,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
             PannerYmax = maxn;
             PannerYmin = minn;
             localStorage.setItem(STORAGE_PANNER_YMAX, maxs);
@@ -3527,7 +3706,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_ZMAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_ZMAX) {
             PannerZmax = maxn;
             PannerZmin = minn;
             localStorage.setItem(STORAGE_PANNER_ZMAX, maxs);
@@ -3545,7 +3724,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_MIN <= mins && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
+        if (LIMIT_MIN <= minn && minn <= maxn && maxn <= LIMIT_PANNER_MAX) {
             PbRatemax = maxn;
             PbRatemin = minn;
             localStorage.setItem(STORAGE_PBRATE_MAX, maxs);
@@ -3557,7 +3736,7 @@ const loadConfigFile = function () {
     if (maxs !== undefined && mins !== undefined) {
         maxn = Number(maxs);
         minn = Number(mins);
-        if (LIMIT_TIMEINTERVAL_MIN <= mins
+        if (LIMIT_TIMEINTERVAL_MIN <= minn
             && minn <= maxn
             && maxn <= LIMIT_TIMEINTERVAL_MAX
         ) {
@@ -3568,6 +3747,15 @@ const loadConfigFile = function () {
             localStorage.setItem(STORAGE_TIME_MAX, maxs);
             localStorage.setItem(STORAGE_TIME_MIN, mins);
         }
+    }
+
+    maxs = json[STORAGE_SETEVENTS_MAX];
+    maxn = Number(maxs);
+    if (1 <= maxn && maxn <= CARDINAL_MAX && maxn !== SetEvents.max) {
+        updateHtmlCRadios(maxn);
+        HtmlCSetRadios.children[maxn-1].firstElementChild.checked = true;
+        HtmlCMaxElements.textContent = maxs;
+        localStorage.setItem(STORAGE_SETEVENTS_MAX, maxs);
     }
 
     setHtmlAppConfiguration();
@@ -3641,6 +3829,6 @@ const main = function () {
     switchTheme();
     HtmlThemeSwitcher.addEventListener("click", switchTheme, true);
 
-    localStorageInit("dev-c-2025-03");
+    localStorageInit("dev-a-2025-04");
 };
 main();
