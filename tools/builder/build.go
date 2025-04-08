@@ -94,7 +94,6 @@ func main() {
         fmt.Println("Production");
 
         htmldata.Href = PROD_HREF
-        paths := FPaths
 
         fd, err = os.OpenFile("index.html", os.O_CREATE|os.O_WRONLY, 0o644)
 
@@ -110,47 +109,9 @@ func main() {
             os.Exit(1)
         }
 
-        minify := slices.Contains(args, argName[ARG_MINI])
-        if minify {
-            fmt.Println("Minify")
-
-            paths = FMinPaths
-            cmd := exec.Command("bun")
-            cmd.Args = append(
-                cmd.Args,
-                "build",
-                FPaths[F_JS],
-                "--outfile",
-                FMinPaths[F_JS],
-                "--minify-whitespace",
-            )
-
-            if out, err := cmd.Output(); err != nil {
-                fmt.Fprintln(os.Stderr, "cmd.Run JS minifier", err)
-                panic(1)
-            } else {
-                fmt.Println(string(out));
-            }
-
-            cmd =  exec.Command("minify")
-            cmd.Args = append(
-                cmd.Args,
-                FPaths[F_CSS],
-                "-o",
-                FMinPaths[F_CSS],
-            )
-
-            if out, err := cmd.Output(); err != nil {
-                fmt.Fprintln(os.Stderr, "cmd.Run JS minifier", err)
-                panic(1)
-            } else {
-                fmt.Println(string(out));
-            }
-       }
-
         var tmpl *template.Template = nil
         for i := 0; i < F_LEN; i += 1 {
-            path := paths[i]
+            path := FPaths[i]
             templateName := TemplateNames[i]
 
             var bytes []byte
@@ -173,7 +134,7 @@ func main() {
             panic(1)
         }
 
-        if minify {
+        if slices.Contains(args, argName[ARG_MINI]) {
             cmd :=  exec.Command("minify")
             cmd.Args = append(
                 cmd.Args,
@@ -181,9 +142,14 @@ func main() {
                 "-o",
                 "index.html",
                 "--html-keep-end-tags",
+                "--html-keep-document-tags",
+                "--js-keep-var-names",
+                "--js-precision", "0",
+                "--js-version", "2024",
+
             )
             if out, err := cmd.Output(); err != nil {
-                fmt.Fprintln(os.Stderr, "cmd.Run JS minifier", err)
+                fmt.Fprintln(os.Stderr, "cmd.Run minifier", err)
                 panic(1)
             } else {
                 fmt.Println(string(out));

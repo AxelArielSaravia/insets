@@ -243,181 +243,6 @@ const assert = function (expression, msg) {
 
 //Html Elements
 
-const HtmlAudioZombies = document.createDocumentFragment();
-
-const HtmlAudioTemplate = document.createElement("audio");
-const HtmlAudioElementTemplate = (function () {
-    /**@type{HTMLTemplateElement}*/
-    const t = document.getElementById("t-audio-element");
-    assert(t !== null, "#t-audio-element is not found");
-    return t.content.firstElementChild;
-}());
-
-const HtmlApp = document.getElementById("app");
-assert(HtmlApp !== null, "#app is not found");
-
-const HtmlAppContainer = document.getElementById("app-container");
-assert(HtmlAppContainer !== null, "#app-container is not found");
-
-const HtmlAppConfig = document.getElementById("app-config");
-assert(HtmlAppConfig !== null, "#app-config is not found");
-
-const HtmlAppDrop = document.getElementById("app-drop");
-assert(HtmlAppDrop !== null, "#app-drop is not found");
-
-const HtmlAppMenu = document.getElementById("app-menu");
-assert(HtmlAppMenu !== null, "#app-menu is not found");
-
-const HtmlAppPanel = document.getElementById("app-panel");
-assert(HtmlAppPanel !== null, "#app-panel is not found");
-
-const HtmlPTitle = document.getElementById("p-title");
-assert(HtmlPTitle !== null, "#p-title is not found");
-
-const HtmlPVolume = document.getElementById("p-volume");
-assert(HtmlPVolume !== null, "#p-volume is not found");
-
-const HtmlPVolumeInput = document.getElementById("p-volume-input");
-assert(HtmlPVolumeInput !== null, "#p-volume-input is not found");
-
-const HtmlPVolumeText = document.getElementById("p-volume-text");
-assert(HtmlPVolumeText !== null, "#p-volume-text is not found");
-
-const HtmlPProbValue = document.getElementById("p-probability-value");
-assert(HtmlPProbValue !== null, "#p-probability-value is not found");
-
-const HtmlPProbText = document.getElementById("p-probability-text");
-assert(HtmlPProbText !== null, "#p-probability-text is not found");
-
-const HtmlPEffects = document.getElementById("p-effects");
-assert(HtmlPEffects !== null, "#p-effects is not found");
-
-const HtmlPStartTimeText = document.getElementById("p-start-time-text");
-assert(HtmlPStartTimeText !== null, "#p-start-time-text is not found");
-
-const HtmlPStartTimeInput = document.getElementById("p-start-time-input");
-assert(HtmlPStartTimeInput !== null, "#p-start-time-input is not found");
-
-const HtmlPStartTimeBar = document.getElementById("p-start-time-bar");
-assert(HtmlPStartTimeBar !== null, "#p-start-time-bar is not found");
-
-const HtmlPEndTimeText = document.getElementById("p-end-time-text");
-assert(HtmlPEndTimeText !== null, "#p-end-time-text is not found");
-
-const HtmlPEndTimeInput = document.getElementById("p-end-time-input");
-assert(HtmlPEndTimeInput !== null, "#p-end-time-input is not found");
-
-const HtmlPEndTimeBar = document.getElementById("p-end-time-bar");
-assert(HtmlPEndTimeBar !== null, "#p-end-time-bar is not found");
-
-const HtmlPCurrentBar = document.getElementById("p-current-bar");
-assert(HtmlPCurrentBar !== null, "#p-current-bar is not found");
-
-const HtmlPCurrentText = document.getElementById("p-current-text");
-assert(HtmlPCurrentText !== null, "#p-current-text is not found");
-
-const HtmlPStartPointBar = document.getElementById("p-start-point-bar");
-assert(HtmlPStartPointBar !== null, "#p-start-point-bar is not found");
-
-const HtmlPEndPointBar = document.getElementById("p-end-point-bar");
-assert(HtmlPEndPointBar !== null, "#p-end-point-bar is not found");
-
-const HtmlCSetDetails = document.getElementById("c-set-details");
-assert(HtmlCSetDetails !== null, "#c-set-details is not found");
-
-const HtmlCMaxElements = document.getElementById("c-max-elements");
-assert(HtmlCMaxElements !== null, "#c-max-elements is not found");
-
-const HtmlCSetRadios = document.getElementById("c-set-radios");
-assert(HtmlCSetRadios !== null, "#c-set-radios is not found");
-
-const HtmlCSets = document.getElementById("c-sets");
-assert(HtmlCSets !== null, "#c-sets is not found");
-
-const HtmlCTimemin = document.getElementById("c-time-min");
-assert(HtmlCTimemin !== null, "#c-time-min is not found");
-const HtmlCTimeminMM = HtmlCTimemin.children["mm"].children["value"];
-const HtmlCTimeminSS = HtmlCTimemin.children["ss"].children["value"];
-const HtmlCTimeminMS = HtmlCTimemin.children["ms"].children["value"];
-
-const HtmlCTimeContainer = HtmlCTimemin.parentElement.parentElement;
-assert(HtmlCTimeContainer !== null, "HtmlCTimeContainer is not found");
-
-const HtmlCTimemax = document.getElementById("c-time-max");
-assert(HtmlCTimemax !== null, "#c-time-max is not found");
-const HtmlCTimemaxMM = HtmlCTimemax.children["mm"].children["value"];
-const HtmlCTimemaxSS = HtmlCTimemax.children["ss"].children["value"];
-const HtmlCTimemaxMS = HtmlCTimemax.children["ms"].children["value"];
-
-const HtmlCDelayDA = document.getElementById("c-delay-da");
-assert(HtmlCDelayDA !== null, "#c-delay-da is not found");
-
-const HtmlCDelayTimemin = document.getElementById("c-delay-timemin");
-assert(HtmlCDelayTimemin !== null, "#c-delay-timemin is not found");
-
-const HtmlCDelayTimemax = document.getElementById("c-delay-timemax");
-assert(HtmlCDelayTimemax !== null, "#c-delay-timemax is not found");
-
-const HtmlCDelayFeedbackmin = document.getElementById("c-delay-feedbackmin");
-assert(HtmlCDelayFeedbackmin !== null, "#c-delay-feedbackmin is not found");
-
-const HtmlCDelayFeedbackmax = document.getElementById("c-delay-feedbackmax");
-assert(HtmlCDelayFeedbackmax !== null, "#c-delay-feedbackmax is not found");
-
-const HtmlCFilterDA = document.getElementById("c-filter-da");
-assert(HtmlCFilterDA !== null, "#c-filter-da is not found");
-
-const HtmlCFilterFreqmin = document.getElementById("c-filter-freqmin");
-assert(HtmlCFilterFreqmin !== null, "#c-filter-freqmin is not found");
-
-const HtmlCFilterFreqmax = document.getElementById("c-filter-freqmax");
-assert(HtmlCFilterFreqmax !== null, "#c-filter-freqmax is not found");
-
-const HtmlCFilterQmin = document.getElementById("c-filter-qmin");
-assert(HtmlCFilterQmin !== null, "#c-filter-qmin is not found");
-
-const HtmlCFilterQmax = document.getElementById("c-filter-qmax");
-assert(HtmlCFilterQmax !== null, "#c-filter-qmax is not found");
-
-const HtmlCFilterEffects = document.getElementById("c-filter-effects");
-assert(HtmlCFilterEffects !== null, "#c-filter-effects is not found");
-
-const HtmlCPannerDA = document.getElementById("c-panner-da");
-assert(HtmlCPannerDA !== null, "#c-panner-da is not found");
-
-const HtmlCPannerXmin = document.getElementById("c-panner-xmin");
-assert(HtmlCPannerXmin !== null, "#c-panner-xmin is not found");
-
-const HtmlCPannerXmax = document.getElementById("c-panner-xmax");
-assert(HtmlCPannerXmax !== null, "#c-panner-xmax is not found");
-
-const HtmlCPannerYmin = document.getElementById("c-panner-ymin");
-assert(HtmlCPannerYmin !== null, "#c-panner-ymin is not found");
-
-const HtmlCPannerYmax = document.getElementById("c-panner-ymax");
-assert(HtmlCPannerYmax !== null, "#c-panner-ymax is not found");
-
-const HtmlCPannerZmin = document.getElementById("c-panner-zmin");
-assert(HtmlCPannerZmin !== null, "#c-panner-zmin is not found");
-
-const HtmlCPannerZmax = document.getElementById("c-panner-zmax");
-assert(HtmlCPannerZmax !== null, "#c-panner-zmax is not found");
-
-const HtmlCPbrateDA = document.getElementById("c-pbrate-da");
-assert(HtmlCPbrateDA !== null, "#c-pbrate-da is not found");
-
-const HtmlCPbrateMin = document.getElementById("c-pbrate-min");
-assert(HtmlCPbrateMin !== null, "#c-pbrate-min is not found");
-
-const HtmlCPbrateMax = document.getElementById("c-pbrate-max");
-assert(HtmlCPbrateMax !== null, "#c-pbrate-max is not found");
-
-const HtmlCRSPDA = document.getElementById("c-rsp-da");
-assert(HtmlCRSPDA !== null, "#c-rsp-da is not found");
-
-const HtmlCREPDA = document.getElementById("c-rep-da");
-assert(HtmlCREPDA !== null, "#c-rep-da is not found");
-
 const AudiosSelected = {
     cap: AUDIOELEMENTS_MAX,
     len: 0,
@@ -541,7 +366,7 @@ const Audios = {
 
 const AudiosPlaying = {
     buf: Array(AUDIOELEMENTS_MAX).fill(EMPTY_AUDIO),
-    html: Array(AUDIOELEMENTS_MAX).fill(HtmlAudioElementTemplate),
+    html: Array(AUDIOELEMENTS_MAX),
     len: 0,
     push(audio, HtmlAudioElement) {
         AudiosPlaying.buf[AudiosPlaying.len] = audio;
@@ -3831,4 +3656,184 @@ const main = function () {
 
     localStorageInit("dev-a-2025-04");
 };
-main();
+
+window.addEventListener("DOMContentLoaded", function () {
+    window.HtmlAudioZombies = document.createDocumentFragment();
+    window.HtmlAudioTemplate = document.createElement("audio");
+
+    window.HtmlAudioElementTemplate = (function () {
+        /**@type{HTMLTemplateElement}*/
+        const t = document.getElementById("t-audio-element");
+        assert(t !== null, "#t-audio-element is not found");
+        return t.content.firstElementChild;
+    }());
+
+    window.HtmlApp = document.getElementById("app");
+    assert(HtmlApp !== null, "#app is not found");
+
+    window.HtmlAppContainer = document.getElementById("app-container");
+    assert(HtmlAppContainer !== null, "#app-container is not found");
+
+    window.HtmlAppConfig = document.getElementById("app-config");
+    assert(HtmlAppConfig !== null, "#app-config is not found");
+
+    window.HtmlAppDrop = document.getElementById("app-drop");
+    assert(HtmlAppDrop !== null, "#app-drop is not found");
+
+    window.HtmlAppMenu = document.getElementById("app-menu");
+    assert(HtmlAppMenu !== null, "#app-menu is not found");
+
+    window.HtmlAppPanel = document.getElementById("app-panel");
+    assert(HtmlAppPanel !== null, "#app-panel is not found");
+
+    window.HtmlPTitle = document.getElementById("p-title");
+    assert(HtmlPTitle !== null, "#p-title is not found");
+
+    window.HtmlPVolume = document.getElementById("p-volume");
+    assert(HtmlPVolume !== null, "#p-volume is not found");
+
+    window.HtmlPVolumeInput = document.getElementById("p-volume-input");
+    assert(HtmlPVolumeInput !== null, "#p-volume-input is not found");
+
+    window.HtmlPVolumeText = document.getElementById("p-volume-text");
+    assert(HtmlPVolumeText !== null, "#p-volume-text is not found");
+
+    window.HtmlPProbValue = document.getElementById("p-probability-value");
+    assert(HtmlPProbValue !== null, "#p-probability-value is not found");
+
+    window.HtmlPProbText = document.getElementById("p-probability-text");
+    assert(HtmlPProbText !== null, "#p-probability-text is not found");
+
+    window.HtmlPEffects = document.getElementById("p-effects");
+    assert(HtmlPEffects !== null, "#p-effects is not found");
+
+    window.HtmlPStartTimeText = document.getElementById("p-start-time-text");
+    assert(HtmlPStartTimeText !== null, "#p-start-time-text is not found");
+
+    window.HtmlPStartTimeInput = document.getElementById("p-start-time-input");
+    assert(HtmlPStartTimeInput !== null, "#p-start-time-input is not found");
+
+    window.HtmlPStartTimeBar = document.getElementById("p-start-time-bar");
+    assert(HtmlPStartTimeBar !== null, "#p-start-time-bar is not found");
+
+    window.HtmlPEndTimeText = document.getElementById("p-end-time-text");
+    assert(HtmlPEndTimeText !== null, "#p-end-time-text is not found");
+
+    window.HtmlPEndTimeInput = document.getElementById("p-end-time-input");
+    assert(HtmlPEndTimeInput !== null, "#p-end-time-input is not found");
+
+    window.HtmlPEndTimeBar = document.getElementById("p-end-time-bar");
+    assert(HtmlPEndTimeBar !== null, "#p-end-time-bar is not found");
+
+    window.HtmlPCurrentBar = document.getElementById("p-current-bar");
+    assert(HtmlPCurrentBar !== null, "#p-current-bar is not found");
+
+    window.HtmlPCurrentText = document.getElementById("p-current-text");
+    assert(HtmlPCurrentText !== null, "#p-current-text is not found");
+
+    window.HtmlPStartPointBar = document.getElementById("p-start-point-bar");
+    assert(HtmlPStartPointBar !== null, "#p-start-point-bar is not found");
+
+    window.HtmlPEndPointBar = document.getElementById("p-end-point-bar");
+    assert(HtmlPEndPointBar !== null, "#p-end-point-bar is not found");
+
+    window.HtmlCSetDetails = document.getElementById("c-set-details");
+    assert(HtmlCSetDetails !== null, "#c-set-details is not found");
+
+    window.HtmlCMaxElements = document.getElementById("c-max-elements");
+    assert(HtmlCMaxElements !== null, "#c-max-elements is not found");
+
+    window.HtmlCSetRadios = document.getElementById("c-set-radios");
+    assert(HtmlCSetRadios !== null, "#c-set-radios is not found");
+
+    window.HtmlCSets = document.getElementById("c-sets");
+    assert(HtmlCSets !== null, "#c-sets is not found");
+
+    window.HtmlCTimemin = document.getElementById("c-time-min");
+    assert(HtmlCTimemin !== null, "#c-time-min is not found");
+    window.HtmlCTimeminMM = HtmlCTimemin.children["mm"].children["value"];
+    window.HtmlCTimeminSS = HtmlCTimemin.children["ss"].children["value"];
+    window.HtmlCTimeminMS = HtmlCTimemin.children["ms"].children["value"];
+
+    window.HtmlCTimeContainer = HtmlCTimemin.parentElement.parentElement;
+    assert(HtmlCTimeContainer !== null, "HtmlCTimeContainer is not found");
+
+    window.HtmlCTimemax = document.getElementById("c-time-max");
+    assert(HtmlCTimemax !== null, "#c-time-max is not found");
+    window.HtmlCTimemaxMM = HtmlCTimemax.children["mm"].children["value"];
+    window.HtmlCTimemaxSS = HtmlCTimemax.children["ss"].children["value"];
+    window.HtmlCTimemaxMS = HtmlCTimemax.children["ms"].children["value"];
+
+    window.HtmlCDelayDA = document.getElementById("c-delay-da");
+    assert(HtmlCDelayDA !== null, "#c-delay-da is not found");
+
+    window.HtmlCDelayTimemin = document.getElementById("c-delay-timemin");
+    assert(HtmlCDelayTimemin !== null, "#c-delay-timemin is not found");
+
+    window.HtmlCDelayTimemax = document.getElementById("c-delay-timemax");
+    assert(HtmlCDelayTimemax !== null, "#c-delay-timemax is not found");
+
+    window.HtmlCDelayFeedbackmin = document.getElementById("c-delay-feedbackmin");
+    assert(HtmlCDelayFeedbackmin !== null, "#c-delay-feedbackmin is not found");
+
+    window.HtmlCDelayFeedbackmax = document.getElementById("c-delay-feedbackmax");
+    assert(HtmlCDelayFeedbackmax !== null, "#c-delay-feedbackmax is not found");
+
+    window.HtmlCFilterDA = document.getElementById("c-filter-da");
+    assert(HtmlCFilterDA !== null, "#c-filter-da is not found");
+
+    window.HtmlCFilterFreqmin = document.getElementById("c-filter-freqmin");
+    assert(HtmlCFilterFreqmin !== null, "#c-filter-freqmin is not found");
+
+    window.HtmlCFilterFreqmax = document.getElementById("c-filter-freqmax");
+    assert(HtmlCFilterFreqmax !== null, "#c-filter-freqmax is not found");
+
+    window.HtmlCFilterQmin = document.getElementById("c-filter-qmin");
+    assert(HtmlCFilterQmin !== null, "#c-filter-qmin is not found");
+
+    window.HtmlCFilterQmax = document.getElementById("c-filter-qmax");
+    assert(HtmlCFilterQmax !== null, "#c-filter-qmax is not found");
+
+    window.HtmlCFilterEffects = document.getElementById("c-filter-effects");
+    assert(HtmlCFilterEffects !== null, "#c-filter-effects is not found");
+
+    window.HtmlCPannerDA = document.getElementById("c-panner-da");
+    assert(HtmlCPannerDA !== null, "#c-panner-da is not found");
+
+    window.HtmlCPannerXmin = document.getElementById("c-panner-xmin");
+    assert(HtmlCPannerXmin !== null, "#c-panner-xmin is not found");
+
+    window.HtmlCPannerXmax = document.getElementById("c-panner-xmax");
+    assert(HtmlCPannerXmax !== null, "#c-panner-xmax is not found");
+
+    window.HtmlCPannerYmin = document.getElementById("c-panner-ymin");
+    assert(HtmlCPannerYmin !== null, "#c-panner-ymin is not found");
+
+    window.HtmlCPannerYmax = document.getElementById("c-panner-ymax");
+    assert(HtmlCPannerYmax !== null, "#c-panner-ymax is not found");
+
+    window.HtmlCPannerZmin = document.getElementById("c-panner-zmin");
+    assert(HtmlCPannerZmin !== null, "#c-panner-zmin is not found");
+
+    window.HtmlCPannerZmax = document.getElementById("c-panner-zmax");
+    assert(HtmlCPannerZmax !== null, "#c-panner-zmax is not found");
+
+    window.HtmlCPbrateDA = document.getElementById("c-pbrate-da");
+    assert(HtmlCPbrateDA !== null, "#c-pbrate-da is not found");
+
+    window.HtmlCPbrateMin = document.getElementById("c-pbrate-min");
+    assert(HtmlCPbrateMin !== null, "#c-pbrate-min is not found");
+
+    window.HtmlCPbrateMax = document.getElementById("c-pbrate-max");
+    assert(HtmlCPbrateMax !== null, "#c-pbrate-max is not found");
+
+    window.HtmlCRSPDA = document.getElementById("c-rsp-da");
+    assert(HtmlCRSPDA !== null, "#c-rsp-da is not found");
+
+    window.HtmlCREPDA = document.getElementById("c-rep-da");
+    assert(HtmlCREPDA !== null, "#c-rep-da is not found");
+
+    AudiosPlaying.html.fill(HtmlAudioElementTemplate);
+
+    main();
+});

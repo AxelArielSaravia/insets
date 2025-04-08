@@ -10,9 +10,7 @@ and open it on any browser. That's all, Yey!!
 
 ## Build Dependencies
 - [Go compiler >= 1.23](https://go.dev/)
-- Minifiers:
-    * [Bun](https://bun.sh/)
-    * [tdewolff/minify](https://github.com/tdewolff/minify)
+- [tdewolff/minify](https://github.com/tdewolff/minify)
 
 
 ## To Do before version 0.1.0:

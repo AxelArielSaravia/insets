@@ -24,7 +24,7 @@
         <title>inSets</title>
         {{if .Production}}
             <style>{{block "style" .}}{{end}}</style>
-            <script type="module">{{block "script" .}}{{end}}</script>
+            <script defer>{{block "script" .}}{{end}}</script>
         {{else}}
             <link rel="stylesheet" href="src/style.css">
             <script src="src/script.js" defer></script>
