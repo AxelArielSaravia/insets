@@ -1,8 +1,10 @@
 package main
 
 import (
+    "os"
     "fmt"
     "net/http"
+    "slices"
 )
 
 const PORT string = ":6969"
@@ -16,9 +18,16 @@ func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+    var args []string = os.Args[1:]
+
+    var fileServer http.Handler
     mux := http.NewServeMux();
 
-    fileServer := http.FileServer(http.Dir("./"))
+    if slices.Contains(args, "public") {
+        fileServer = http.FileServer(http.Dir("./public"))
+    } else {
+        fileServer = http.FileServer(http.Dir("./"))
+    }
     mux.Handle("/", fileServer)
 
     fmt.Printf("Starting server on http://127.0.0.1%s\n", PORT)

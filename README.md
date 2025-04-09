@@ -32,5 +32,5 @@ and open it on any browser. That's all, Yey!!
 * [x] Add a minify to the Prodcution Builder
 
 * ### Metadatas
-* [ ] Favicons
-* [ ] ogg
+* [x] Favicons
+* [x] ogg
