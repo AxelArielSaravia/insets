@@ -3654,7 +3654,7 @@ const main = function () {
     switchTheme();
     HtmlThemeSwitcher.addEventListener("click", switchTheme, true);
 
-    localStorageInit("dev-a-2025-04");
+    localStorageInit("dev-2025-04");
 };
 
 window.addEventListener("DOMContentLoaded", function () {

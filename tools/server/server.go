@@ -1,13 +1,13 @@
 package main
 
 import (
-    "os"
     "fmt"
     "net/http"
+    "os"
     "slices"
 )
 
-const PORT string = ":6969"
+const PORT string = ":3030"
 
 type Logger struct {
     next http.Handler
@@ -19,6 +19,11 @@ func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     var args []string = os.Args[1:]
+    port := PORT
+
+    if (len(args) > 0) {
+        port = ":"+args[0];
+    }
 
     var fileServer http.Handler
     mux := http.NewServeMux();
@@ -32,6 +37,6 @@ func main() {
 
     fmt.Printf("Starting server on http://127.0.0.1%s\n", PORT)
 
-    err := http.ListenAndServe(PORT, &Logger{next: mux})
+    err := http.ListenAndServe(port, &Logger{next: mux})
     panic(err);
 }

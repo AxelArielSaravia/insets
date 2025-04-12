@@ -31,12 +31,25 @@ var ProductionNames = [F_LEN]string{
 const SERVER_DIR = "./public/"
 const MEDIA_DIR = "./media/"
 var CopyFiles = []string {
-    "apple-touch-icon.png",
-    "favicon-96x96.png",
-    "favicon.svg",
-    "manifest-192x192.png",
-    "manifest-512x512.png",
+    "icon.svg",
+    "apple-touch-iconx180.png",
+    "iconx96.png",
+    "maskable_icon.png",
+    "maskable_icon_x48.png",
+    "maskable_icon_x72.png",
+    "maskable_icon_x96.png",
+    "maskable_icon_x128.png",
+    "maskable_icon_x192.png",
+    "maskable_icon_x384.png",
+    "maskable_icon_x512.png",
+    "screenshot-desktop-1-1920x1080.png",
+    "screenshot-desktop-2-1920x1080.png",
+    "screenshot-desktop-3-1920x1080.png",
+    "screenshot-mobile-1-721x1440.png",
+    "screenshot-mobile-2-721x1440.png",
+    "screenshot-mobile-3-721x1440.png",
 }
+
 var ServerPaths = []string{
     "style.css",
     "script.js",
@@ -61,7 +74,7 @@ const (
     ARG_PROD
     ARG_DEV
     ARG_MINI
-    ARG_SERVER
+    ARG_HOSTING
     ARG_LEN
 )
 
@@ -70,7 +83,7 @@ var argName = [ARG_LEN]string{
     ARG_PROD: "prod",
     ARG_DEV: "dev",
     ARG_MINI: "minify",
-    ARG_SERVER: "server",
+    ARG_HOSTING: "hosting",
 }
 
 var helpMessage = [ARG_LEN]string{
@@ -78,7 +91,7 @@ var helpMessage = [ARG_LEN]string{
     ARG_PROD: "adds production data",
     ARG_DEV: "developer mode",
     ARG_MINI: "minify files in production mode",
-    ARG_SERVER: "build the files for the server",
+    ARG_HOSTING: "Prepares all files for hosting",
 }
 
 
@@ -89,7 +102,7 @@ func main() {
     slices.Contains(args, argName[ARG_HELP]) || (
     !slices.Contains(args, argName[ARG_PROD]) &&
     !slices.Contains(args, argName[ARG_DEV]) &&
-    !slices.Contains(args, argName[ARG_SERVER])) {
+    !slices.Contains(args, argName[ARG_HOSTING])) {
         fmt.Print(
             "Usage: "+os.Args[0]+" [OPTIONS]\n",
             "\n",
@@ -107,7 +120,7 @@ func main() {
         panic(1)
     }
 
-    if slices.Contains(args, argName[ARG_SERVER]) {
+    if slices.Contains(args, argName[ARG_HOSTING]) {
         fmt.Println("Server");
 
         var htmldata = HTMLData{
@@ -181,6 +194,8 @@ func main() {
             "-o",
             "./public/index.html",
         )
+        cmd.Args = append(cmd.Args, ServerCmdArgs[F_HTML]...)
+        cmd.Args = append(cmd.Args, ServerCmdArgs[F_JS]...)
 
         if out, err := cmd.Output(); err != nil {
             fmt.Fprintln(os.Stderr, "cmd.Run minifier", err)

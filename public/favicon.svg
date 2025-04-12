@@ -1,5 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="1000" height="1000"><g clip-path="url(#SvgjsClipPath1086)"><rect width="1000" height="1000" fill="#060606"></rect><g transform="matrix(5.833333333333333,0,0,5.833333333333333,150,150)"><svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="120" height="120"><svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="#f6efef" stroke="#f6efef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-insets">
-
+<svg xmlns="http://www.w3.org/2000/svg"
+    version="1.1"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:svgjs="http://svgjs.dev/svgjs"
+    width="1000"
+    height="1000"
+>
+    <g clip-path="url(#SvgjsClipPath1086)">
+        <rect width="1000" height="1000" fill="#060606"></rect>
+        <g transform="matrix(5.833333333333333,0,0,5.833333333333333,150,150)">
+            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.dev/svgjs" width="120" height="120">
+                <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="#f6efef" stroke="#f6efef" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-insets">
     <circle cx="60" cy="24" r="6"></circle>
     <circle cx="42" cy="42" r="6"></circle>
     <circle cx="60" cy="42" r="6"></circle>

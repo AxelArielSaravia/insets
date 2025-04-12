@@ -368,12 +368,13 @@ body>main[data-app="1"] .presentation {
     line-height: 2;
 }
 
-
+/*
 @media (scripting: none) {
     .presentation button {
         display: none;
     }
 }
+*/
 /*@end: presentation*/
 
 /*@start: App elements*/
