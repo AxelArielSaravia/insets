@@ -38,6 +38,7 @@ Get started with inSets in one of two easy ways:
 
 ## How To Build:
 To build inSets from source:
+
 The `src/index.html` file is a Go template/html that needs to be parsed.
 
  * **Dependencies:**
