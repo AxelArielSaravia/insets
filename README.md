@@ -16,9 +16,9 @@ files for fresh inspiration.
 * **Generative Probabilities:** Adjust the likelihood of audio or effect combinations for evolving compositions.
 * **Web-Based & Cross-Platform:** Runs in any modern browser on desktop or mobile—no installation needed.
 
-## [How to Use
+## How to Use
 Learn how to create music with **inSets**! Check out our
-[How to Use guide](,/how-to-use.md) for step-by-step instructions on uploading
+[How to Use guide](how-to-use.md) for step-by-step instructions on uploading
 files, configuring effects, and generating compositions.
 
 ## Installation
