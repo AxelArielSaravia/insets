@@ -1,4 +1,6 @@
-# inSets <small>dev-2025-04</small>
+# inSets
+**Current Version**: dev-2025-04
+
 Unleash your creativity with inSets! Upload audio files, let the app blend them
 using generative algorithms, and tweak effects like reverb, delay, or pitch to
 craft dynamic compositions. With customizable probabilities, you control the
@@ -13,6 +15,11 @@ files for fresh inspiration.
 * **Effect Customization:** Fine-tune parameters like reverb, delay, pitch, and more to sculpt your sound.
 * **Generative Probabilities:** Adjust the likelihood of audio or effect combinations for evolving compositions.
 * **Web-Based & Cross-Platform:** Runs in any modern browser on desktop or mobile—no installation needed.
+
+## [How to Use
+Learn how to create music with **inSets**! Check out our
+[How to Use guide](,/how-to-use.md) for step-by-step instructions on uploading
+files, configuring effects, and generating compositions.
 
 ## Installation
 Get started with inSets in one of two easy ways:
