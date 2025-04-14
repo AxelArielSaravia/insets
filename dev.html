@@ -3,28 +3,39 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="author" content="Axel Ariel Saravia">
-        <meta name="creator" content="axarisar">
-        <meta name="description" content="inSets music composition app generate music from miuxing audio files">
-        <meta name="keywords" content="music, generative music, music composition, mixer, landscape music, experimental music, axarisar, Axel Ariel Saravia">
-
         <meta
             name="theme-color"
             media="(prefers-color-scheme: light)"
-            content="#ede4e4"
+            content="#f9f9f9"
         >
         <meta
             name="theme-color"
             media="(prefers-color-scheme: dark)"
-            content="#3f3b3b"
+            content="#060606"
         >
 
-        <meta name="canonical" href="./">
+        <meta name="robots" content="index, follow">
 
         <title>inSets</title>
+        <meta name="author" content="Axel Ariel Saravia">
+        <meta name="creator" content="axarisar">
+        <meta name="description" content="inSets music composition app generate music from mixing audio files">
+        <meta name="keywords" content="music, generative music, music composition, mixer, landscape music, experimental music, axarisar, Axel Ariel Saravia">
+
         
-            <link rel="stylesheet" href="src/style.css">
-            <script src="src/script.js" defer></script>
+            <link rel="icon" type="image/png" sizes="96x96"
+                href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAb1BMVEUAAAAGBgYMDAwHBwcGBgYHBwcQEBAGBgYGBgYHBwctLS0GBgYGBgYHBwcHBwcICAgICAgWFhYGBgYHBwcGBgYICAgHBwcHBwcGBgYHBwcHBwcHBwcHBwcGBgb27+/n4eF+e3sVFRW6tbVCQUG6tLRdNGKkAAAAHXRSTlMA+BThx5gP8k7ZBc6j6Y2IKQvtvHhkIOPRsHJxSJOwq7gAAAGhSURBVGje7ZrZcoJAEEV7BmRx37NeWfT/vzGGYAZTUG0FbhWUnKd5O9rLVRmlQjSfeQYtMd5sHkkNwTJEZ4TLQO6Zvm/RKduPqVQIduict8qbWMcgEK+lxMagENuy/j5I+D992IPGvihQCBqhFZEJiExEAgMiJpAIVCJWhVyNfFDxxQMVTwyoGAGZZxNk6eWSZihgCM7J6UpyxhWGIEtOBUkGUATpqSQFKIL8JsiBYQruSjTIJhPH1C1ant8WbZhRQRC4/Gk4txS4xjad2wrcaDadWwrccjWdWwpcPDSd+y7QS9T3JtPH9JY/TechRAVFoOeMkkuKQG+g0nBFoI+gMrKaQF8iZek0gR4DTbHRF8H/S9SXJtPH9JGcqculPkWFAvt7UacCvZmUj8wOBfpCUb62DElQX6IhNZk+ptWcGX+jqYzPixTG50V9KNH4vOhhnk3AvqCgX7HQL4n411wRqHyyrxqn/MtSsQY0jJUrS9BYyTfBK0j4Gyk4voBCbKVkHYLA4ii/WMI+76xUOSw6fvkH+cNm1WGdwtVGHNy//3wB8Aj+sLWCLpUAAAAASUVORK5CYII="
+            >
+            <link rel="icon" type="image/svg+xml"
+                href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiB2aWV3Qm94PSIwIDAgMTIwIDEyMCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJpY29uLWluc2V0cyI+PHN0eWxlPmNpcmNsZXtmaWxsOiNmNmVmZWZ9PC9zdHlsZT48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeD0iMCIgeT0iMCIgcng9IjIwIiByeT0iMjAiIGZpbGw9IiMwNjA2MDYiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjMwIiByPSI2Ii8+PGNpcmNsZSBjeD0iNDUiIGN5PSI0NSIgcj0iNiIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNDUiIHI9IjYiLz48Y2lyY2xlIGN4PSI3NSIgY3k9IjQ1IiByPSI2Ii8+PGNpcmNsZSBjeD0iMzAiIGN5PSI2MCIgcj0iNiIvPjxjaXJjbGUgY3g9Ijc1IiBjeT0iNjAiIHI9IjYiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjYwIiByPSI2Ii8+PGNpcmNsZSBjeD0iNDUiIGN5PSI3NSIgcj0iNiIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iNzUiIHI9IjYiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjkwIiByPSI2Ii8+PC9zdmc+Cg=="
+            >
+            <link rel="apple-touch-icon" sizes="180x180"
+                href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAMAAAAKE/YAAAAAk1BMVEUAAAAHBwcHBwcGBgYICAgGBgYICAgJCQkGBgYHBwcHBwcKCgoHBwcGBgYGBgYICAghISEGBgYHBwcHBwcGBgYHBwcHBwcHBwcHBwcICAgGBgb27+8VFRW6tbUkJCRCQUHn4eGcmJjn4OBRT0/Y0tJvbGyrp6fY0dHJxMSNiop+e3tgXl7Jw8OrpqYzMjJCQEB+enqITSF7AAAAGnRSTlMA592bO/hWHMeyijDZ0s1gB/BoSHlFuIKQJ6ttAIgAAATOSURBVHja7NbbCoJAFIXhxsnzAUVNWGKB4FVQ7/92ESF0UbpVmNkD+3uC/0LXnpMQQgghhDgobXRcKJihilg36cHic+LBPC85708OMtiSBfuS2wI2Fe325FLDNl1ubA5z2JeHm5rrChxU9YmuAxcdfTXAR0AdZx98+LRTEypwokh/4wW8xJSPA9wQbnoEbiKnloO6IKUHfrxy5RSCo5XDaP+Z9Itejua10TPl2N4RVi8BT51L13AWu3VZCPclA0+Ze+OxMh+cXtLf/KVocCXRf0i0wejb/YnDjEY/hv5tuOIAw9HT2H+ME3YzHP1iz9xyG4SBKLqPO7bB5g0J3f/u2khYGcbIbV151Ko5n/cjOgNxMhc6etKhEGVpF5h0MChCW9oTx6MIbemZODcUoS1NZ1CEsrT7i9JoidOiCG1pSxyLIrSlO+J0KEJbGiNzHlGItrTpKdIbFKItDbMczotBMdrSQLNaa9cGP+RVAj7jJV1L2r0ZCMxV5JBDU9rdAxFNi2F6fnpEnkfLIwr3jLeaNOtWUxOjLkahi1EzZRuYsvRAT/ZDkEXHIDuLMtZK0i4kC7+ZWDQZAOdiEBwkytIjcQZA1q013o7cPqIs3UqdZDVNRwuQqErLmjIBl3WrP0cOAl3pJjU0IjLpHA0EqtLScAYu69Ys5xCoSssb7y+/0/Js9pAoSy9pt1qJswGygS0QaEubPv0ts2mvHYmybUZPWh7F9rBx7TNyx2xt9hhqS2Of43U2MXKWSDygNmM8qzsy6K2mw9jT7DswNj9/RBsY3UfUj7nF41UCfgH/VNqhEJP/rGrSzt+Igu3wbVYbiKzn4tsjusWokjQrUneDb+FsUsrMnZWyitKDqCRfxgXxX38uOENF6T2UbhA2feHleeTqSdvSrXhLd8GGOLaeNIn292XGtN+sdKKadENlLyYuS4AVZaaW9FYsTalhL6LXlX5n3wyWEIRhIPofaWmDVEFFx///Ou2BARMdHGKcZuw75rSHDnS7my+caW63+JmuX48nAgq+09TgHJejoPlH3Or0AvI/YtL5I3I6nLzV1rtHmk7V7MCwU77l+XZwDrfc8vYNOtecPMx0eTS006hME+BhG3/rXNaponVE7y+9G+m7x/gYnUGAqujrSBwYeWESoCY68g5e2AlCIX3RJMq6QIa9msr5/fu0HPUkwEDxyjted0SWv8n5fbolRjdHTAAWapsksTVxpj/JxgUoiQ5Isk8SeKUiS9/rfQ85Cs0aZEaqQ2KkhGh0mA6YJT93mFIeESMlQKUtFpk8T0brVBNQAlX0O+Kt6ZubqVavb+31pxdupjfTVD8QByZHX/TZ4vZF+VdThgG7xbC6u2VS9EBKkXLq5udrPLoZLNJuMWxuMy8cGNrZGwcIBjf0MzFGEFNNwL29O0hhEAaiMPwasBGtRANCzf0PWgotbsQkG32j7zvBLGTUzT85GlpDH+lyHSaGQu+W4XJBNM4wYSZNGBOniB0+cfKw1557Ydc7Meosdk0ztd6RsZg3jQCs7Y+IHL5Y72ArqP61RpEtfX+0KLBw3Aj4mxaUmJk2SDPjx9AGCVhZeS92KBc4npDmiRo9w4/Xo0cdf34gufWoFlw6kwsAYGpsF251Dcro3S0RERERsekDl+shd+cJJ60AAAAASUVORK5CYII="
+            >
+            
+                <link rel="stylesheet" href="src/style.css">
+                <script src="src/script.js" defer></script>
+            
         
 
         <template id="t-audio-element">
@@ -65,6 +76,7 @@
                 <button name="play"
                     class="button-icon"
                     type="button"
+                    title="Play/Pause audio"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24"
@@ -97,7 +109,7 @@
                 <h3 name="title" class="title"></h3>
                 <small name="probability"
                     class="probability"
-                    title="probability"
+                    title="audio selection probability"
                 >
                     <span name="text"></span><span>%</span>
                 </small>
@@ -135,21 +147,21 @@
                         viewBox="0 0 120 120"
                         fill="currentColor"
                         stroke="currentColor"
-                        stroke-width="2"
+                        stroke-width="0"
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         class="icon-insets"
                     >
-                        <circle cx="60" cy="24" r="6"></circle>
-                        <circle cx="42" cy="42" r="6"></circle>
-                        <circle cx="60" cy="42" r="6"></circle>
-                        <circle cx="78" cy="42" r="6"></circle>
-                        <circle cx="24" cy="60" r="6"></circle>
-                        <circle cx="78" cy="60" r="6"></circle>
-                        <circle cx="96" cy="60" r="6"></circle>
-                        <circle cx="42" cy="78" r="6"></circle>
-                        <circle cx="60" cy="78" r="6"></circle>
-                        <circle cx="60" cy="96" r="6"></circle>
+                        <circle cx="60" cy="30" r="6"/>
+                        <circle cx="45" cy="45" r="6"/>
+                        <circle cx="60" cy="45" r="6"/>
+                        <circle cx="75" cy="45" r="6"/>
+                        <circle cx="30" cy="60" r="6"/>
+                        <circle cx="75" cy="60" r="6"/>
+                        <circle cx="90" cy="60" r="6"/>
+                        <circle cx="45" cy="75" r="6"/>
+                        <circle cx="60" cy="75" r="6"/>
+                        <circle cx="60" cy="90" r="6"/>
                     </svg>
                     <button id="presentation-open" class="button-text">
                         <h2>Open inSets</h2>
@@ -165,11 +177,11 @@
                     <p>This page requires Javascript</p>
                     <p>Enable Javascript or use any other browser</p>
                 </noscript>
-                <a href=""
+                <a href="https://github.com/AxelArielSaravia/insets?tab=readme-ov-file#how-it-works-the-rules"
                     class="button-icon-text"
                     target="_blank"
                     rel="noreferrer noopener"
-                    aria-label="how to used"
+                    aria-label="how it works"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg"
                         width="24" height="24"
@@ -185,7 +197,7 @@
                         <path d="M12 16v-4"/>
                         <path d="M12 8h.01"/>
                     </svg>
-                    <span>how to</span>
+                    <span>how it works</span>
                 </a>
                 <p>inSets Music Composition</p>
                 <p>by Axel Ariel Saravia</p>
@@ -216,6 +228,7 @@
                     class="theme-switcher button-icon-text"
                     id="theme-switcher"
                     aria-label="theme switcher"
+                    title="change color theme"
                 >
                     <p class="sr-only">Theme switcher</p>
                     <svg xmlns="http://www.w3.org/2000/svg"
@@ -460,6 +473,7 @@
                             <button name="play"
                                 class="button-icon"
                                 type="button"
+                                title="Play/Pause audio"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg"
                                     width="24" height="24"
@@ -839,7 +853,7 @@
                             data-elements="0"
                         >
                             <summary
-                                title="Here are the probability values of audios sets sizes for the executions. The maximum size of a set that can be executed is 15"
+                                title="Here are the probability values of audios sets sizes for the executions."
                             >
                                 <h3>Sets</h3>
                                 <svg xmlns="http://www.w3.org/2000/svg"

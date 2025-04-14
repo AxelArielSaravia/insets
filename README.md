@@ -39,7 +39,8 @@ Click an audio item to open the **Audio Panel**. Here, you can:
 
 ### Configuration Section
 The **Configuration section** lets you set minimum and maximum values for effect
-randomization.
+randomization. Configuration are saved in your browser's **LocalStorage** for
+persistence across sessions.
 
 * **Export/Import**: Export or Import your confirutarion values as a JSON file.
 
