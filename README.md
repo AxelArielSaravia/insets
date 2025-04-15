@@ -1,6 +1,8 @@
 # inSets
 **Current Version**: dev-2025-04
 
+**Web Version:** [insetmusic](https://insetsmusic.web.app/)
+
 Unleash your creativity with inSets! Upload audio files, let the app blend them
 using generative algorithms, and tweak effects like reverb, delay, or pitch to
 craft dynamic compositions. With customizable probabilities, you control the
