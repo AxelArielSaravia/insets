@@ -90,7 +90,7 @@ Get started with inSets in one of two easy ways:
  * Open index.html in a Web Audio API-compatible browser
 
 **2. Download as PWA**:
- * Visit [hostname]() in a compatible browser.
+ * Visit [insetmusic.web.app](https://insetsmusic.web.app/) in a compatible browser.
  * Click the browser’s "Add to Home Screen" or "Install" prompt (usually found in the menu or address bar).
  * Launch inSets from your device’s home screen for offline access and a seamless app experience.
 
