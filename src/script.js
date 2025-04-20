@@ -52,8 +52,8 @@ const DEFAULT_TIMEINTERVAL_MIN = 8;
 const DEFAULT_VOLUME = 10;
 const DEFAULT_SETEVENTS_MAX = 5;
 
-const FADEIN = 2; //20 miliesconds
-const FADEOUT = 2;
+const FADEIN = 20;  //miliesconds
+const FADEOUT = 20; //miliseconds
 
 const ANIMATION_ALERT = {
     keyframes: [{color: "red"}],
@@ -605,7 +605,7 @@ const audioCreate = function (HtmlAudio, source) {
         repDisabled: CutREPAreAllDisable,
         pbrate: 1,
         fadeoutRunning: false,
-        fadeoutStart: 0,
+        fadeoutStart: HtmlAudio.duration,
         input: input,
         output: output,
         filter: filter,
@@ -720,9 +720,9 @@ const RequestFadeout = {
     toReplay(AudiosSelected) {
         RequestFadeout.request = true;
         RequestFadeout.endTime = (
-            Math.trunc(context.currentTime * 100)
+            Math.trunc(context.currentTime * 1000)
             + FADEOUT
-        ) / 100;
+        ) / 1000;
         RequestFadeout.action = "replay";
 
         if (AudiosSelected.all) {
@@ -734,18 +734,18 @@ const RequestFadeout = {
     toPause(AudiosPlaying) {
         RequestFadeout.request = true;
         RequestFadeout.endTime = (
-            Math.trunc(context.currentTime * 100)
+            Math.trunc(context.currentTime * 1000)
             + FADEOUT
-        ) / 100;
+        ) / 1000;
         RequestFadeout.action = "pause";
         RequestFadeout.fromAudioList(AudiosPlaying);
     },
     toClear(AudiosPlaying) {
         RequestFadeout.request = true;
         RequestFadeout.endTime = (
-            Math.trunc(context.currentTime * 100)
+            Math.trunc(context.currentTime * 1000)
             + FADEOUT
-        ) / 100;
+        ) / 1000;
         RequestFadeout.action = "clear";
         RequestFadeout.fromAudioList(AudiosPlaying);
     }
@@ -962,12 +962,6 @@ const play = function (audio, HtmlAudioElement) {
         audio.pbrate = 1;
     }
 
-    audio.fadeoutRunning = false;
-    audio.fadeoutStart = (
-        Math.trunc(audio.endPoint * 100)
-        - (FADEOUT * audio.pbrate)
-    ) / 100;
-
     //duration is greater than 1 second
     if (audio.duration >= 1) {
         let rsp = audio.startTime;
@@ -995,6 +989,12 @@ const play = function (audio, HtmlAudioElement) {
         audio.startPoint = rsp;
         audio.endPoint = rep;
     }
+
+    audio.fadeoutRunning = false;
+    audio.fadeoutStart = (
+        Math.trunc(audio.endPoint * 1000)
+        - (FADEOUT * audio.pbrate)
+    ) / 1000;
 
     audio.html.currentTime = audio.startPoint;
     audioRandomizeConnections(audio);
@@ -1054,7 +1054,7 @@ const audioPlay = async function (audio, HtmlAudioElement) {
         audio.output.gain.setValueAtTime(0, context.currentTime);
         audio.output.gain.linearRampToValueAtTime(
             audio.volume / 10,
-            (Math.trunc(context.currentTime * 100) + FADEIN) / 100
+            (Math.trunc(context.currentTime * 1000) + FADEIN) / 1000
         );
         audio.html.volume = 1;
 
@@ -1090,6 +1090,8 @@ const audioPause = function (audio) {
 
         audio.playing = false;
         audio.fadeoutRunning = false;
+        audio.fadeoutStart = audio.duration;
+
         return true;
     }
     return false;
@@ -2682,9 +2684,9 @@ const HtmlAppContainerOnclick = function (e) {
         if (audio.playing) {
             if (!audio.fadeoutRunning) {
                 audio.endPoint = (
-                    Math.trunc(audio.html.currentTime * 100)
+                    Math.trunc(audio.html.currentTime * 1000)
                     + FADEOUT
-                ) / 100;
+                ) / 1000;
                 audioFadeout(audio, context.currentTime);
             }
         } else {
@@ -2706,9 +2708,9 @@ const HtmlAppContainerOnclick = function (e) {
         if (audio.playing) {
             if (!audio.fadeoutRunning) {
                 audio.endPoint = (
-                    Math.trunc(audio.html.currentTime * 100)
+                    Math.trunc(audio.html.currentTime * 1000)
                     + FADEOUT
-                ) / 100;
+                ) / 1000;
                 audioFadeout(audio, context.currentTime);
             }
         } else {
@@ -2831,9 +2833,9 @@ const HtmlAppPanelOnclick = function (e) {
         if (audio.playing) {
             if (!audio.fadeoutRunning) {
                 audio.endPoint = (
-                    Math.trunc(audio.html.currentTime * 100)
+                    Math.trunc(audio.html.currentTime * 1000)
                     + FADEOUT
-                ) / 100;
+                ) / 1000;
                 audioFadeout(audio, context.currentTime);
             }
         } else {
