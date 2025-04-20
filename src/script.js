@@ -1,4 +1,5 @@
 "use strict";
+const VERSION = "dev-2025-04"
 //do not change this without check all ArrayTypes and Arrays in the app
 const AUDIOELEMENTS_MAX = 128;
 const FREE_TIME = 5000; //ms
@@ -3656,7 +3657,7 @@ const main = function () {
     switchTheme();
     HtmlThemeSwitcher.addEventListener("click", switchTheme, true);
 
-    localStorageInit("dev-2025-04");
+    localStorageInit(VERSION);
 };
 
 window.addEventListener("DOMContentLoaded", function () {

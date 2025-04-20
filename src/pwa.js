@@ -1,7 +1,8 @@
-const CACHE_NAME = "0.1.0";
+const CACHE_NAME = "dev-2025-04";
 
-const waitCache = function(cache) {
-    return cache.addAll([
+const onInstall = async function () {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll([
         "/",
         "/style.css",
         "/script.js",
@@ -9,27 +10,58 @@ const waitCache = function(cache) {
         "/apple-touch-iconx180.png",
         "/iconx96.png"
     ]);
+    self.skipWaiting();
 };
 
-const waitFetch = async function (request) {
-    const response = await caches.match(request);
-    if (response === undefined) {
-        const netResponse = await fetch(request);
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(request, netResponse.clone());
-        return netResponse;
+const onActivate = async function () {
+    const cachesName = await caches.keys();
+    let p = [];
+    for (let cache of cachesName) {
+        if (cache !== CACHE_NAME) {
+            p.push(caches.delete(cache));
+        }
     }
-    return response;
+    await Promise.all(p);
+    self.clients.claim();
+};
+
+const updateCache = async function (request, response) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response);
+};
+
+const RESPONSE_500 = {
+    status: 500,
+    statusText: "Internal Server Error"
+};
+
+const onFetch = async function (request) {
+    const response = await caches.match(request); 
+    if (response === undefined) {
+        try {
+            const networkResponse = await fetch(request);
+            updateCache(request, networkResponse.clone());
+            return networkResponse;
+        } catch (err) {
+            console.error("ServiceWorker fetch failed:", err);
+            return new Response(
+                "Service Worker: Network and cache unavailable",
+                RESPONSE_500
+            );
+        }
+    } else {
+        return response;
+    }
 };
 
 self.addEventListener("install", function (event) {
-    console.info("INSTALLED")
-    event.waitUntil(caches.open(CACHE_NAME).then(waitCache))
+    event.waitUntil(onInstall());
 });
+
 self.addEventListener("activate", function (event) {
-    console.info("INSTALLED")
+    event.waitUntil(onActivate());
 });
 
 self.addEventListener("fetch", function (event) {
-    event.respondWith(waitFetch(event.request));
+    event.respondWith(onFetch(event.request));
 });
