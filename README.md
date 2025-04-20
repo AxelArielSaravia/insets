@@ -105,22 +105,26 @@ The `src/index.html` file is a Go template/html that needs to be parsed.
     - [tdewolff/minify](https://github.com/tdewolff/minify)
 
  * **Steps**:
-    **1. Clone the Repository**:
+
+    1. **Clone the Repository**:
     ```sh
     git clone https://github.com/AxelArielSaravia/insets.git
     cd insets
     ```
-    **2. Build `index.html` (Production)**:
+
+    2. **Build `index.html` (Production)**:
     ```sh
     go run tools/builder/build.go prod minify
     ```
     Generates a minified index.html for deployment.
-    **3. Build `public/` (Hosting Environment)**:
+
+    3. **Build `public/` (Hosting Environment)**:
     ```sh
     go run tools/builder/build.go hosting
     ```
     Prepares all files for hosting.
-    **4. Build `dev.html` (Debugging)**:
+
+    4. **Build `dev.html` (Debugging)**:
     ```sh
     go run tools/builder/build.go dev
     ```

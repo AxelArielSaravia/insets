@@ -58,7 +58,7 @@ var ServerPaths = []string{
 }
 var ServerCmdArgs = [F_LEN][]string {
     F_HTML: {"--html-keep-end-tags", "--html-keep-document-tags"},
-    F_JS: {"--js-keep-var-names", "--js-precision", "0"},
+    F_JS: {"--js-keep-var-names", "--js-precision", "10"},
 }
 
 

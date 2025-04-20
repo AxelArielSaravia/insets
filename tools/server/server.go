@@ -19,7 +19,12 @@ func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     var args []string = os.Args[1:]
-    port := PORT
+
+	if slices.Contains(args, "help") {
+		fmt.Println("server PORT [public]");
+		return
+	}
+	port := PORT
 
     if (len(args) > 0) {
         port = ":"+args[0];
@@ -35,7 +40,7 @@ func main() {
     }
     mux.Handle("/", fileServer)
 
-    fmt.Printf("Starting server on http://127.0.0.1%s\n", PORT)
+    fmt.Printf("Starting server on http://127.0.0.1%s\n", port)
 
     err := http.ListenAndServe(port, &Logger{next: mux})
     panic(err);
