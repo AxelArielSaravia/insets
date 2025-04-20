@@ -1,0 +1,14 @@
+{
+  "name": "insets",
+  "version": "dev-2025-04",
+  "description": "insets",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "AxelArielSaravia",
+  "license": "MIT"
+}
